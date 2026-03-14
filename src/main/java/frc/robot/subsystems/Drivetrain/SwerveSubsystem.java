@@ -6,6 +6,10 @@ package frc.robot.subsystems.Drivetrain;
 
 import java.util.function.Supplier;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
@@ -29,15 +33,6 @@ import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
 
 public class SwerveSubsystem extends SubsystemBase {
-  /** Creates a new SwerveSubsystem.
-  public SwerveSubsystem() {
-    
-  }
-
-  @Override
-  public void periodic() {
-    // This method will be called once per scheduler run
-  } */
 
   private final SwerveModule frontLeftModule = new SwerveModule(
     SwerveConstants.frontLeftDriveMotor,
@@ -120,9 +115,8 @@ public class SwerveSubsystem extends SubsystemBase {
   );
 
 //   auton starts here!! :) woohoo
-//   RobotConfig config;
+  RobotConfig config;
 
-//   private int counter = 0;
 //   //Constructor
   public SwerveSubsystem() {
     super();
@@ -132,31 +126,31 @@ public class SwerveSubsystem extends SubsystemBase {
         Thread.sleep(1000);
         zeroGyro();
         try {
-        // config = RobotConfig.fromGUISettings();
+        config = RobotConfig.fromGUISettings();
         } catch (Exception e) {
           e.printStackTrace();
         }
 
-//         // from pathplanner
-//         AutoBuilder.configure(
-//           this::getPose,
-//           this::resetPose,
-//           this::getCurrentSpeeds,
-//           (speeds, feedforwards) -> driveRobotRelative(speeds, true),
-//           new PPHolonomicDriveController(
-//             new PIDConstants(0.1, 0.0, 0.0),
-//             new PIDConstants(0.1, 0.0, 0.0)
-//           ),
-//           config,
-//           () -> {
-//             var alliance = DriverStation.getAlliance();
-//             if (alliance.isPresent()) {
-//               return alliance.get() == DriverStation.Alliance.Red;
-//             }
-//             return false;
-//           },
-//           this
-//         );
+        // from pathplanner
+        AutoBuilder.configure(
+          this::getPose,
+          this::resetPose,
+          this::getCurrentSpeeds,
+          (speeds, feedforwards) -> driveRobotRelative(speeds, true),
+          new PPHolonomicDriveController(
+            new PIDConstants(0.25, 0.0, 0.0),
+            new PIDConstants(0.25, 0.0, 0.0)
+          ),
+          config,
+          () -> {
+            var alliance = DriverStation.getAlliance();
+            if (alliance.isPresent()) {
+              return alliance.get() == DriverStation.Alliance.Red;
+            }
+            return false;
+          },
+          this
+        );
       } catch (Exception e) {
       }
    }).start();
@@ -167,12 +161,8 @@ public class SwerveSubsystem extends SubsystemBase {
     gyro.reset();
   }
 
-  public void backwardsGyro() {
-    gyro.setAngleAdjustment(180);
-  }
-
   public double getGyro() {
-    return -Math.IEEEremainder(gyro.getAngle(), 360);
+    return Math.IEEEremainder(gyro.getAngle(), 360);
   }
 
   public Rotation2d getGyroToRotation2d() {
@@ -186,10 +176,7 @@ public class SwerveSubsystem extends SubsystemBase {
     backRightModule.zeroMotors();
   }
 
-  public void setChassisSpeeds(ChassisSpeeds speeds)
-  {
-
-  }
+  public void setChassisSpeeds(ChassisSpeeds speeds) {}
 
   public void setModuleStates(SwerveModuleState[] desiredStates) {
     setModuleStates(desiredStates, false);
@@ -303,26 +290,6 @@ public class SwerveSubsystem extends SubsystemBase {
   {
     return runEnd(() -> drive(xSpeedFunction, ySpeedFunction, thetaFunction, fieldOrientedFunction), () -> zeroModules());
   }
-
-  public Command ToAngleCommand(Supplier<Double> angle)
-  {
-    return DriveCommand(() -> 0.0, () -> 0.0, () -> angleDirection(angle.get()), () -> false)
-          .until(() -> angleDistance(angle.get()) < 1);
-  }
-
-  // public Command ForwardAtAngleCommand(Supplier<Double> angle)
-  // {
-  //   return ToAngleCommand(angle).andThen(DistanceToReefCommand());
-  // }
-  
-  // public Command DistanceToReefCommand() {
-  //   return DriveCommand(() -> reefPercentage(), () -> 0.0, () -> 0.0, () -> true)
-  //           .until(() -> LLTA > 75);
-  // }
-  // public Command ForwardAtAngleCommand(Supplier<Double> angle, double seconds)
-  // {
-  //   return ToAngleCommand(angle).andThen(DriveCommand( () -> 0.1, () -> 0.0, () -> 0.0, () -> false).withTimeout(seconds));
-  // }
 
   public Command ZeroGyroCommand() {
     return runOnce(() -> zeroGyro());

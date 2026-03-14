@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.Drivetrain;
 
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -14,6 +15,7 @@ import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -33,6 +35,7 @@ public class SwerveModule { // class swervemodule
   private SparkMax turnMotor;
 
   private SparkMaxConfig turnMotorConfig;
+  private TalonFXConfiguration driveMotorConfig;
 
   private PIDController turnPIDController;
 
@@ -50,28 +53,25 @@ public class SwerveModule { // class swervemodule
 
     
     driveMotor = new TalonFX(driveMotorPort);
-    //turnMotor = new TalonFX(turnMotorPort);
     turnMotor = new SparkMax(turnMotorPort, MotorType.kBrushless);
 
     turnMotorConfig = new SparkMaxConfig();
+    driveMotorConfig = new TalonFXConfiguration();
     
-    //does brakes or somehing?
-
-    driveMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(NeutralModeValue.Brake));
-    
-    //makes it so that you're able to change the rotation of the wheels to the opposite
-
-    if (driveMotorReversed) {
-      driveMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
-    }
     
     if (turnMotorReversed) {
-      //turnMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
       turnMotorConfig.inverted(true);
     }
+
+    if (driveMotorReversed) {
+      driveMotorConfig.MotorOutput.withInverted(InvertedValue.Clockwise_Positive);
+    }
+
+    driveMotorConfig.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
+    driveMotor.getConfigurator().apply(driveMotorConfig);
     
-    // does this have a TalonFX equivelant??
-    //turnMotor.configure(turnMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
+    turnMotorConfig.idleMode(IdleMode.kBrake);
+    turnMotor.configure(turnMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     
     turnPIDController = new PIDController(SwerveConstants.kSwerveP, SwerveConstants.kSwerveI, SwerveConstants.kSwerveD);
     turnPIDController.enableContinuousInput(-Math.PI, Math.PI);
@@ -85,8 +85,6 @@ public class SwerveModule { // class swervemodule
   }
 
   public double getTurnPosition() {
-    // return turnMotor.getRotorPosition().getValueAsDouble()
-    // / RobotConstants.kTurnMotorGearRatio * (2 * Math.PI);
     return turnMotor.getEncoder().getPosition()
     / RobotConstants.kTurnMotorGearRatio * 2 * Math.PI;
   }
@@ -97,8 +95,6 @@ public class SwerveModule { // class swervemodule
   }
 
   public double getTurnVelocity() {
-    // return turnMotor.getRotorVelocity().getValueAsDouble()
-    // / RobotConstants.kTurnMotorGearRatio * 2 * Math.PI;
     return turnMotor.getEncoder().getPosition()
     / RobotConstants.kDriveMotorGearRatio * Math.PI * RobotConstants.kWheelDiameter;
   }
@@ -112,7 +108,6 @@ public class SwerveModule { // class swervemodule
 
   public void resetEncoders() {
     driveMotor.setPosition(0);
-    // turnMotor.setPosition(getAbsoluteEncoderRad()*RobotConstants.kTurnMotorGearRatio/(2*Math.PI));
     turnMotor.getEncoder().setPosition(getAbsoluteEncoderRad()*RobotConstants.kTurnMotorGearRatio/(2*Math.PI));
   }
 

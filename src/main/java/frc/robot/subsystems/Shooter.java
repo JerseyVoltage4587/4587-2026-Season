@@ -19,32 +19,54 @@ import frc.robot.Constants;
 public class Shooter extends SubsystemBase{
     
     private static TalonFX rightShooterMotor = new TalonFX(Constants.kRightShooterMotorID);
-
     private static TalonFX leftShooterMotor = new TalonFX(Constants.kLeftShooterMotorID);
+    private double shooterSpeed = 0;
+    private static PIDController shooterPID = new PIDController(0.25, 0, 0);
 
     private static SparkMax hoodMotor = new SparkMax(Constants.kHoodMotorID, MotorType.kBrushless);
     private static SparkMaxConfig hoodConfig = new SparkMaxConfig();
     private static PIDController hoodPID = new PIDController(0.2, 0, 0);
 
+
     public Shooter() {
         rightShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(NeutralModeValue.Coast));
-        rightShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
+        rightShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive));
         
         leftShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(NeutralModeValue.Coast));
-        leftShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive));
+        leftShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
 
         hoodConfig.idleMode(IdleMode.kBrake);
-        hoodConfig.smartCurrentLimit(5, 20);
+        hoodConfig.inverted(true);
+        // hoodConfig.smartCurrentLimit(5, 20);
         hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
+    //Sets Shooter Speed to a Constant 
     private void standardShooterSpeed() {
-        rightShooterMotor.set(.75);
-        leftShooterMotor.set(0.75);
+        rightShooterMotor.set(shooterSpeed);
+        leftShooterMotor.set(shooterSpeed);
     }
 
-    private void shooterSpeedWithBangBang(double speed) {
-        rightShooterMotor.set(speed);
+    //Variable Shooter Speeds for Standard Method
+    private void fasterShoot() {
+        shooterSpeed += 0.05;
+    }
+
+    private void slowerShoot() {
+        shooterSpeed -= 0.05;
+    }
+
+    public double displayShooter() {
+        return shooterSpeed;
+    }
+
+    public double displayShooterGet() {
+        return (leftShooterMotor.get() + rightShooterMotor.get()) / 2;
+    }
+
+    //Shooter Speed Method with a Bang Bang Controller to combat speed dropping
+    private void shooterSpeedWithBangBang(double speed) {        
+        rightShooterMotor.set(speed);   
         leftShooterMotor.set(speed);
 
         if((rightShooterMotor.getVelocity().getValueAsDouble() < 100) || leftShooterMotor.getVelocity().getValueAsDouble() < 100)
@@ -54,19 +76,27 @@ public class Shooter extends SubsystemBase{
         }
     }
 
+    //Shooter Speed Method with a PID Controller to combat speed dropping
+    public void shooterSpeedWithPID(double spd) {
+        leftShooterMotor.set(shooterPID.calculate(leftShooterMotor.get(), spd));
+        rightShooterMotor.set(shooterPID.calculate(rightShooterMotor.get(), spd));
+    }
+
     private void zeroShooterMotors() {
         rightShooterMotor.set(0);
         leftShooterMotor.set(0);
     }
-
+    
+    //Manual Hood Adjustment Functions
     private void hoodForward() {
-        hoodMotor.set(0.25);
+        hoodMotor.set(0.1);
     }
 
     private void hoodBackward() {
-        hoodMotor.set(-0.25);
+        hoodMotor.set(-0.1);
     }
 
+    //Automatic Hood alignment based on distance
     private void hoodAngle(double targetAngle) {
         hoodMotor.set(hoodPID.calculate(hoodMotor.getEncoder().getPosition(), targetAngle));
     }
@@ -87,5 +117,12 @@ public class Shooter extends SubsystemBase{
     public Command hoodBackwardCommand() {
         return runEnd(() -> hoodBackward(), () -> zeroHoodMotor());
     }
-        
+    
+    public Command fasterShootCommand() {
+        return runOnce(() -> fasterShoot());
+    }
+
+    public Command slowerShootCommand() {
+        return runOnce(() -> slowerShoot());
+    }
 }
