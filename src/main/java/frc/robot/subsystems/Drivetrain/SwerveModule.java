@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.Drivetrain;
 
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -22,7 +21,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
 
@@ -129,7 +127,6 @@ public class SwerveModule { // class swervemodule
     setDesiredState(desiredState, false);
   }
 
-  private double scaleFactor = 4.5;
 
   public void setDesiredState(SwerveModuleState desiredState, boolean planned) {
     desiredState.optimize(getState().angle);

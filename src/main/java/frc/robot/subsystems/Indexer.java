@@ -1,9 +1,8 @@
 package frc.robot.subsystems;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -20,23 +19,24 @@ public class Indexer extends SubsystemBase {
     private static SparkMax mainBeltMotor = new SparkMax(Constants.kMainBeltMotorID, MotorType.kBrushless);
     private static SparkMaxConfig mainBeltConfig = new SparkMaxConfig();
     
-    private static SparkMax feedMotor = new SparkMax(Constants.kFeedMotorID, MotorType.kBrushless);
-    private static SparkMaxConfig feedConfig = new SparkMaxConfig();
+    private static TalonFX feedMotor = new TalonFX(Constants.kFeedMotorID);
+    private static TalonFXConfiguration feedConfig = new TalonFXConfiguration();
 
     public Indexer() {
                 
         mainBeltConfig.idleMode(IdleMode.kCoast);
-        mainBeltConfig.smartCurrentLimit(5, 35);
+        mainBeltConfig.inverted(true);
+        // mainBeltConfig.smartCurrentLimit(5, 35);
         
-        feedConfig.idleMode(IdleMode.kCoast);
-        feedConfig.smartCurrentLimit(5, 35);
+        feedConfig.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+        // feedConfig.smartCurrentLimit(5, 35);
 
         mainBeltMotor.configure(mainBeltConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        feedMotor.configure(feedConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        feedMotor.getConfigurator().apply(feedConfig);
     }
     
     private void beltSpeed() {
-        mainBeltMotor.set(0.1);
+        mainBeltMotor.set(0.5);
     }
 
     private void zeroMainBeltMotor() {
@@ -44,11 +44,21 @@ public class Indexer extends SubsystemBase {
     }
 
     private void feedSpeed() {
-        feedMotor.set(0.1);
+        feedMotor.set(0.5);
     }
 
     private void zeroFeedMotor() {
         feedMotor.set(0);
+    }
+
+    private void fullIndexer() {
+        feedMotor.set(0.5);
+        mainBeltMotor.set(0.5);
+    }
+
+    private void zeroIndexerMotors() {
+        feedMotor.set(0);
+        mainBeltMotor.set(0);
     }
 
     public Command beltSpeedCommand() {
@@ -57,6 +67,10 @@ public class Indexer extends SubsystemBase {
 
     public Command feedSpeedCommand() {
         return runEnd(() -> feedSpeed(), () -> zeroFeedMotor());
+    }
+
+    public Command fullIndexerCommand() {
+        return runEnd(() -> fullIndexer(), () -> zeroIndexerMotors());
     }
 
 }

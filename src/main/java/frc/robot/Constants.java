@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -16,7 +17,7 @@ import edu.wpi.first.math.util.Units;
  */
 public final class Constants {  
 
-public static class SwerveConstants {
+  public static class SwerveConstants {
     public static final int frontLeftDriveMotor = 2;
     public static final int frontLeftTurnMotor = 1;
     public static final boolean frontLeftDriveMotorReversed = true;
@@ -71,22 +72,59 @@ public static class SwerveConstants {
     
   }
 
+  public static final class ShooterConstants {
+    
+    public static final double kMaxHoodEncoderValue = 25; //NOT FINAL
+
+    public static final double kShooterP = 0;
+    public static final double kShooterI = 0;
+    public static final double kShooterD = 0;
+
+    public static final double kHoodP = 0;
+    public static final double kHoodI = 0;
+    public static final double kHoodD = 0;
+
+  }
+
+  public static final class HoodConstants {
+    public static final double kHoodP = 0;
+    public static final double kHoodI = 0;
+    public static final double kHoodD = 0;
+  }
+
+  public static final class TurretConstants {
+    
+    public static final double kTurretToRobotFrontOffset = -90;
+    public static final double kMaxTurretEncoderValue = 50; // NOT FINAL
+    
+    public static final double kTurretP = 0;
+    public static final double kTurretI = 0;
+    public static final double kTurretD = 0;
+  }
+
+  public static final Translation2d kBlueHubCoord = new Translation2d(4.616, 4.035);
+  public static final Translation2d kBlueDepotTrenchCoord = new Translation2d(4.616, 0.641);
+  public static final Translation2d kBlueOutpostTrenchCoord = new Translation2d(4.616, 7.422);
+  public static final Translation2d kRedHubCoord = new Translation2d(11.906, 4.035);
+  public static final Translation2d kRedDepotTrenchCoord = new Translation2d(11.906, 7.422);
+  public static final Translation2d kRedOutpostTrenchCoord = new Translation2d(11.906, 0.641);
+
   //IDs
-  public static final int kTurretMotorID = 17;
+  public static final int kTurretMotorID = 20;
 
   //intake
-  public static final int kIntakeBallMotorID = 9;
-  public static final int kReleaseIntakeMotorID = 16;
+  public static final int kIntakeBallMotorID = 32;
+  public static final int kReleaseIntakeMotorID = 33;
 
   //indexer
-  public static final int kMainBeltMotorID = 10;
-  public static final int kFeedMotorID = 11;
+  public static final int kMainBeltMotorID = 30;
+  public static final int kFeedMotorID = 31;
 
   //shoter
-  public static final int kLeftShooterMotorID = 12;
-  public static final int kRightShooterMotorID = 13;
-  public static final int kHoodMotorID = 14;
+  public static final int kLeftShooterMotorID = 21;
+  public static final int kRightShooterMotorID = 22;
+  public static final int kHoodMotorID = 23;
 
   //climber
-  public static final int kClimberMotorID = 15;
+  // public static final int kClimberMotorID = 40;
 }

@@ -21,7 +21,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
@@ -100,18 +99,19 @@ public class SwerveSubsystem extends SubsystemBase {
   SwerveModuleState[] getModuleStates = {
     frontLeftModule.getState(),
     frontRightModule.getState(),
-    backLeftModule.getState(),
+    backLeftModule.getState(), 
     backRightModule.getState()
   };
     
-  private SwerveDriveOdometry odometer = new SwerveDriveOdometry(kinematics, new Rotation2d(getGyro()), getModulePositions);
+  // private SwerveDriveOdometry odometer = new SwerveDriveOdometry(kinematics, new Rotation2d(getGyro()), getModulePositions);
+  
   private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
     kinematics, 
-    getGyroToRotation2d(), 
+    new Rotation2d(0), 
     getModulePositions, 
-    getPose(), 
+    new Pose2d(new Translation2d(0, 0), new Rotation2d(0)),
     VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(5)), 
-    VecBuilder.fill(0.5, 0.5, Units.degreesToRadians(30))
+    VecBuilder.fill(0.2, 0.2, Units.degreesToRadians(15))
   );
 
 //   auton starts here!! :) woohoo
@@ -121,40 +121,37 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveSubsystem() {
     super();
 
-   new Thread(() -> {
-      try {
-        Thread.sleep(1000);
-        zeroGyro();
-        try {
-        config = RobotConfig.fromGUISettings();
-        } catch (Exception e) {
-          e.printStackTrace();
+  }
+
+  public void InitGyro() throws InterruptedException {
+    Thread.sleep(1000);
+    zeroGyro();
+    try {
+    config = RobotConfig.fromGUISettings();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    // from pathplanner
+    AutoBuilder.configure(
+      this::getPose,
+      this::resetPose,
+      this::getCurrentSpeeds,
+      (speeds, feedforwards) -> driveRobotRelative(speeds, true),
+      new PPHolonomicDriveController(
+        new PIDConstants(0.25, 0.0, 0.0),
+        new PIDConstants(0.25, 0.0, 0.0)
+      ),
+      config,
+      () -> {
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isPresent()) {
+          return alliance.get() == DriverStation.Alliance.Red;
         }
-
-        // from pathplanner
-        AutoBuilder.configure(
-          this::getPose,
-          this::resetPose,
-          this::getCurrentSpeeds,
-          (speeds, feedforwards) -> driveRobotRelative(speeds, true),
-          new PPHolonomicDriveController(
-            new PIDConstants(0.25, 0.0, 0.0),
-            new PIDConstants(0.25, 0.0, 0.0)
-          ),
-          config,
-          () -> {
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent()) {
-              return alliance.get() == DriverStation.Alliance.Red;
-            }
-            return false;
-          },
-          this
-        );
-      } catch (Exception e) {
-      }
-   }).start();
-
+        return false;
+      },
+      this
+    );
   }
 
   public void zeroGyro() {
@@ -192,13 +189,17 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public Pose2d getPose() {
-    return odometer.getPoseMeters();
+    return poseEstimator.getEstimatedPosition();
   }
 
   public void resetPose(Pose2d pose) {
     if (pose != null) {
-      odometer.resetPose(pose);
+      poseEstimator.resetPose(pose);
     }
+  }
+
+  public void addVisionMeasurement(Pose2d visionPose, double visionTimestamp) {
+    poseEstimator.addVisionMeasurement(visionPose, visionTimestamp);
   }
 
   public ChassisSpeeds getCurrentSpeeds() {
@@ -247,23 +248,11 @@ public class SwerveSubsystem extends SubsystemBase {
       SmartDashboard.putBoolean("FieldOrient", !fieldOrientedFunction.get());
     }
 
-  public double angleDirection(double angle) {
-    if ((angleDistance(angle)) < 180) {
-      return angle/180;
-    } else {
-      return -(angle/180);
-    }
-  }
-
-  public double angleDistance(double angle) {
-    return Rotation2d.fromDegrees(angle).minus(getGyroToRotation2d()).getDegrees();
-  }
-
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
 
-    odometer.update(getGyroToRotation2d(), getModulePositions);
+    poseEstimator.update(getGyroToRotation2d(), getModulePositions);
     
     SmartDashboard.putNumber("Gyro Degrees", getGyro());
     SmartDashboard.putNumber("Front Left Offset Rad", frontLeftModule.getAbsoluteEncoderRad());

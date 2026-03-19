@@ -4,29 +4,21 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
     
     private static TalonFX rightShooterMotor = new TalonFX(Constants.kRightShooterMotorID);
     private static TalonFX leftShooterMotor = new TalonFX(Constants.kLeftShooterMotorID);
     private double shooterSpeed = 0;
-    private static PIDController shooterPID = new PIDController(0.25, 0, 0);
-
-    private static SparkMax hoodMotor = new SparkMax(Constants.kHoodMotorID, MotorType.kBrushless);
-    private static SparkMaxConfig hoodConfig = new SparkMaxConfig();
-    private static PIDController hoodPID = new PIDController(0.2, 0, 0);
-
+    private static PIDController shooterPIDController = new PIDController(
+        ShooterConstants.kShooterP, ShooterConstants.kShooterI, ShooterConstants.kShooterD
+    );
 
     public Shooter() {
         rightShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(NeutralModeValue.Coast));
@@ -35,10 +27,6 @@ public class Shooter extends SubsystemBase{
         leftShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withNeutralMode(NeutralModeValue.Coast));
         leftShooterMotor.getConfigurator().apply(new TalonFXConfiguration().MotorOutput.withInverted(InvertedValue.Clockwise_Positive));
 
-        hoodConfig.idleMode(IdleMode.kBrake);
-        hoodConfig.inverted(true);
-        // hoodConfig.smartCurrentLimit(5, 20);
-        hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
     //Sets Shooter Speed to a Constant 
@@ -77,52 +65,32 @@ public class Shooter extends SubsystemBase{
     }
 
     //Shooter Speed Method with a PID Controller to combat speed dropping
-    public void shooterSpeedWithPID(double spd) {
-        leftShooterMotor.set(shooterPID.calculate(leftShooterMotor.get(), spd));
-        rightShooterMotor.set(shooterPID.calculate(rightShooterMotor.get(), spd));
+    private void shooterSpeedWithPID(double spd) {
+        leftShooterMotor.set(shooterPIDController.calculate(leftShooterMotor.get(), spd));
+        rightShooterMotor.set(shooterPIDController.calculate(rightShooterMotor.get(), spd));
     }
 
     private void zeroShooterMotors() {
         rightShooterMotor.set(0);
         leftShooterMotor.set(0);
     }
-    
-    //Manual Hood Adjustment Functions
-    private void hoodForward() {
-        hoodMotor.set(0.1);
-    }
 
-    private void hoodBackward() {
-        hoodMotor.set(-0.1);
-    }
-
-    //Automatic Hood alignment based on distance
-    private void hoodAngle(double targetAngle) {
-        hoodMotor.set(hoodPID.calculate(hoodMotor.getEncoder().getPosition(), targetAngle));
-    }
-
-    private void zeroHoodMotor() {
-        hoodMotor.set(0);
-    }
 
     //commands
     public Command standardShooterSpeedCommand() {
         return runEnd(() -> standardShooterSpeed(), () -> zeroShooterMotors());
     }
-
-    public Command hoodForwardCommand() {
-        return runEnd(() -> hoodForward(), () -> zeroHoodMotor());
-    }
-
-    public Command hoodBackwardCommand() {
-        return runEnd(() -> hoodBackward(), () -> zeroHoodMotor());
-    }
     
     public Command fasterShootCommand() {
         return runOnce(() -> fasterShoot());
     }
-
+    
     public Command slowerShootCommand() {
         return runOnce(() -> slowerShoot());
     }
+
+    public Command shooterSpeedWithPIDCommand() {
+        return runEnd(() -> shooterSpeedWithPID(shooterSpeed), () -> zeroShooterMotors());
+    }
+
 }

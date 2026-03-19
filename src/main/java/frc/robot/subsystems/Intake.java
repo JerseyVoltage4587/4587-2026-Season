@@ -22,12 +22,12 @@ public class Intake extends SubsystemBase {
     public Intake() {
         intakeBallConfig.idleMode(IdleMode.kCoast);
         intakeBallConfig.inverted(true);
-        intakeBallConfig.smartCurrentLimit(2, 25);
+        // intakeBallConfig.smartCurrentLimit(2, 25);
         intakeBallMotor.configure(intakeBallConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         
         releaseIntakeConfig.idleMode(IdleMode.kCoast);
         releaseIntakeConfig.inverted(true);
-        releaseIntakeConfig.smartCurrentLimit(2, 30);
+        // releaseIntakeConfig.smartCurrentLimit(2, 30);
         releaseIntakeMotor.configure(releaseIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         
     }

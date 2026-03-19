@@ -1,0 +1,77 @@
+package frc.robot.subsystems;
+
+import java.util.function.DoubleSupplier;
+
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.Constants.ShooterConstants;
+
+//big class full of stuff
+public class Hood extends SubsystemBase{
+    
+    //variables of class (motor, confic, PID controller)
+    private static SparkMax hoodMotor = new SparkMax(Constants.kHoodMotorID, MotorType.kBrushless);
+    private static SparkMaxConfig hoodConfig = new SparkMaxConfig();
+    private static PIDController hoodPIDController = new PIDController(
+        ShooterConstants.kHoodP, ShooterConstants.kHoodI, ShooterConstants.kHoodD
+    );
+
+    //does stuff to the variables
+    public Hood() {
+        hoodConfig.idleMode(IdleMode.kBrake);
+        hoodConfig.inverted(true);
+        // hoodConfig.smartCurrentLimit(5, 20);
+        hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    }
+
+    // Hood methods below
+
+    //Manual Hood Adjustment Functions (goes forward and backwards)
+    private void hoodForward() {
+        hoodMotor.set(0.1);
+    }
+
+    private void hoodBackward() {
+        hoodMotor.set(-0.1);
+    }
+
+    //Automatic Hood alignment based on distance
+
+    //this part gives a target angle for the hood, and uses PID to get there
+    private void hoodAngle(double targetAngle) {
+        hoodMotor.set(hoodPIDController.calculate(hoodMotor.getEncoder().getPosition(), targetAngle));
+    }
+
+    //so BASICALLY this thing actually does the PID: 
+    private void goToDegrees(double deg) {
+        hoodAngle(deg * (ShooterConstants.kMaxHoodEncoderValue / 45));
+
+    }
+
+    private void zeroHoodMotor() {
+        hoodMotor.set(0);
+    }
+
+    // Hood commands below
+
+    public Command hoodForwardCommand() {
+        return runEnd(() -> hoodForward(), () -> zeroHoodMotor());
+    }
+
+    public Command hoodBackwardCommand() {
+        return runEnd(() -> hoodBackward(), () -> zeroHoodMotor());
+    }
+
+   public Command hoodGoToDegreesCommand(DoubleSupplier deg) {
+        return runEnd(() -> goToDegrees(deg.getAsDouble()), () -> zeroHoodMotor());
+   }
+}

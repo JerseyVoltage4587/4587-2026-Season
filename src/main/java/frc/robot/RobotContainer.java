@@ -5,22 +5,27 @@
 package frc.robot;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-//import frc.robot.Constants.OperatorConstants;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.Hood;
+import frc.robot.subsystems.Indexer;
 import frc.robot.subsystems.Shooter;
+import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Drivetrain.SwerveSubsystem;
 
 /**
@@ -31,10 +36,15 @@ import frc.robot.subsystems.Drivetrain.SwerveSubsystem;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  private static final SwerveSubsystem m_swervesubsystem = new SwerveSubsystem();
+  private static final SwerveSubsystem m_swerve = new SwerveSubsystem();
   private static final Shooter m_shooter = new Shooter();
+  private static final Turret m_turret = new Turret();
+  private static final Hood m_hood = new Hood();
+  private static final Vision m_vision = new Vision(m_swerve::addVisionMeasurement);
+  private static final Indexer m_indexer = new Indexer();
+  private String visionTarget = null;
 
-  private final SendableChooser<Command> autoChooser;
+  private SendableChooser<Command> autoChooser;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final Joystick j = new Joystick(0);
@@ -49,12 +59,18 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
-    autoChooser = AutoBuilder.buildAutoChooser();
-    SmartDashboard.putData("Auto Chooser", autoChooser);
-
+    
     // Configure the trigger bindings
     configureBindings();
     
+    new Thread(() -> {
+      try {
+        m_swerve.InitGyro();
+        autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+      } catch (Exception e) {
+      }
+   }).start();
   }
 
   /**
@@ -72,6 +88,11 @@ public class RobotContainer {
     // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
     // cancelling on release.
 
+    // Comments Key:
+    // Current Assignment: The current command that is assigned to that button, hoping to change soon
+    // Future Assignment: The final command we want to assign to that button
+    // Final Assignment: The current and future command assigned to that button
+
     jButtonY = new JoystickButton(j, 1); 
     jButtonB = new JoystickButton(j, 2); // Future Assignment: Lower Climber
     jButtonA = new JoystickButton(j, 3); // Final Assignment: Robot Relative Joystick Controls
@@ -79,7 +100,7 @@ public class RobotContainer {
     jLeftBumper = new JoystickButton(j, 5); // Future Assignment: Retract Intake
     jRightBumper = new JoystickButton(j, 6); // Future Assignment: Release Intake
     jLeftTrigger = new JoystickButton(j, 7); // Future Assignment: Pass Balls to Trench Tag
-    jRightTrigger = new JoystickButton(j, 8); // Future Assignment: Auto Aim & Shoot Fuel
+    jRightTrigger = new JoystickButton(j, 8); // Future Assignment: Auto Aim & Shoot Fuel // current assignment: run indexer
     jMinusButton = new JoystickButton(j, 9);
     jPlusButton = new JoystickButton(j, 10);
     jHouseButton = new JoystickButton(j, 13);
@@ -93,7 +114,7 @@ public class RobotContainer {
     kLeftBumper = new JoystickButton(k, 5); // Current Assignment: Lower Shooter Speed
     kRightBumper = new JoystickButton(k, 6); // Current Assignment: Raise Shooter Speed
     kLeftTrigger = new JoystickButton(k, 7);
-    kRightTrigger = new JoystickButton(k, 8);
+    kRightTrigger = new JoystickButton(k, 8); // Current Assignment: Run Indexer
     kMinusButton = new JoystickButton(k, 9);
     kPlusButton = new JoystickButton(k, 10);
     kLeftStickButton = new JoystickButton(k, 11);
@@ -101,19 +122,118 @@ public class RobotContainer {
     kHouseButton = new JoystickButton(k, 13);
     kCircleButton = new JoystickButton(k, 14);
 
-    m_swervesubsystem.setDefaultCommand(m_swervesubsystem.DriveCommand(
+    m_swerve.setDefaultCommand(m_swerve.DriveCommand(
       () -> j.getRawAxis(1),
       () -> j.getRawAxis(0),
       () -> j.getRawAxis(2),
       () -> jButtonA.getAsBoolean()
     ));
 
+    // m_turret.setDefaultCommand(m_turret.turretGoToDegrees(Math.toDegrees(turretTargetAngle())));
+    // kRightTrigger.whileTrue(m_turret.turretGoToDegrees(() -> Math.toDegrees(turretTargetAngle())));
+
+    // m_shooter.setDefaultCommand(m_shooter.hoodGoToDegreesCommand(hoodTarget()));
+    // kLeftTrigger.whileTrue(m_hood.hoodGoToDegreesCommand(() -> hoodTarget()));
+
     kRightBumper.onTrue(m_shooter.fasterShootCommand());
     kLeftBumper.onTrue(m_shooter.slowerShootCommand());
     kButtonA.whileTrue(m_shooter.standardShooterSpeedCommand());
-    kButtonB.whileTrue(m_shooter.hoodBackwardCommand());
-    kButtonX.whileTrue(m_shooter.hoodForwardCommand());
+    kButtonB.whileTrue(m_hood.hoodBackwardCommand());
+    kButtonX.whileTrue(m_hood.hoodForwardCommand());
+
+    kRightTrigger.whileTrue(m_indexer.fullIndexerCommand());
   }
+
+  
+  public void chooseVisionTarget(Supplier<Boolean> redAlliance) {
+    // Chooses vision target based on distance from Alliance Wall (x) and distance from left field wall (y) 
+    
+    if (redAlliance.get()) {
+      if (m_swerve.getPose().getX() >= 11.57) {
+        visionTarget = "Red Hub";
+        } else if (m_swerve.getPose().getX() >= 4.03 && m_swerve.getPose().getY() > 4.035) {
+          visionTarget = "Red Depot Trench";
+        } else if (m_swerve.getPose().getX() >= 4.03 && m_swerve.getPose().getY() < 4.035) {
+          visionTarget = "Red Outpost Trench";
+        } else if (m_swerve.getPose().getX() < 4.03 && m_swerve.getPose().getY() > 4.035) {
+          visionTarget = "Blue Outpost Trench";
+        } else if (m_swerve.getPose().getX() < 4.03 && m_swerve.getPose().getY() < 4.035) {
+          visionTarget = "Blue Depot Trench";
+        } else {
+          visionTarget = null;
+        }
+      } else {
+        if (m_swerve.getPose().getX() <= 4.03) {
+          visionTarget = "Blue Hub";
+        } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() < 4.035) {
+          visionTarget = "Blue Depot Trench";
+        } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() > 4.035) {
+          visionTarget = "Blue Outpost Trench";
+        } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() < 4.035) {
+          visionTarget = "Red Outpost Trench";
+        } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() > 4.035) {
+          visionTarget = "Red Depot Trench";
+        } else {
+          visionTarget = null;
+        }
+      }
+    }
+    
+    // Finds the angle to a Translation 2d target using the x and y coords of the robot pose
+    public double translationAngleToTarget(Translation2d target) {
+      double xDistanceToTarget = target.getX() - m_swerve.getPose().getX();
+      double yDistanceToTarget = target.getY() - m_swerve.getPose().getY();;
+      
+      return Math.atan2(xDistanceToTarget, yDistanceToTarget);
+    }
+    
+    public double turretTargetAngle() {
+
+      double returnAngle;
+
+      switch (visionTarget) {
+        case "Red Hub": returnAngle = translationAngleToTarget(Constants.kRedHubCoord); break;
+        case "Blue Hub": returnAngle = translationAngleToTarget(Constants.kBlueHubCoord); break;
+        case "Blue Depot Trench": returnAngle = translationAngleToTarget(Constants.kBlueDepotTrenchCoord); break;
+        case "Blue Outpost Trench": returnAngle = translationAngleToTarget(Constants.kBlueOutpostTrenchCoord); break;
+        case "Red Depot Trench": returnAngle = translationAngleToTarget(Constants.kRedDepotTrenchCoord); break;
+        case "Red Outpost Trench": returnAngle = translationAngleToTarget(Constants.kRedOutpostTrenchCoord); break;
+        default: returnAngle = 180; break;
+      } 
+      
+      return returnAngle + m_swerve.getPose().getRotation().getRadians() + Constants.TurretConstants.kTurretToRobotFrontOffset;
+  }
+
+  public double shooterTarget() {
+    double shooterSpeedTarget;
+
+    if(visionTarget.equals("Red Hub") || visionTarget.equals("Blue Hub")) {
+      shooterSpeedTarget = 0.0; //CHANGE LATER
+    } 
+    else {
+      shooterSpeedTarget = 0.8;
+    }
+    
+    return shooterSpeedTarget;
+  }
+
+  public double hoodTarget(Translation2d target) {
+    double hoodAngleTarget;
+    double xDistanceToTarget = target.getX() - m_swerve.getPose().getX();
+    double yDistanceToTarget = target.getY() - m_swerve.getPose().getY();
+
+    double diagDistanceToTarget = Math.sqrt(Math.pow(xDistanceToTarget, 2) + Math.pow(yDistanceToTarget, 2));
+
+    if(visionTarget.equals("Red Hub") || visionTarget.equals("Blue Hub")) {
+      hoodAngleTarget = diagDistanceToTarget * (45 / 6.231);
+    } 
+    else {
+      hoodAngleTarget = 45;
+    }
+    
+    return hoodAngleTarget;
+  }
+
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
@@ -124,15 +244,4 @@ public class RobotContainer {
     // An example command will be run in autonomous
     return autoChooser.getSelected();
   }
-
-  // public Command autoPathCommand(String name) {
-  //   try {
-  //     // List<PathPlannerPath> auto = PathPlannerAuto.getPathGroupFromAutoFile(name);
-
-  //     return AutoBuilder.buildAuto(name);
-  //   } catch (Exception e) {
-  //     DriverStation.reportError(e.getMessage(), e.getStackTrace());
-  //     return Commands.none();
-  //   }
-  // }
 }
