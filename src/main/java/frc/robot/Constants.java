@@ -36,10 +36,10 @@ public final class Constants {
 
     public static final int backLeftDriveMotor = 8;
     public static final int backLeftTurnMotor = 7;
-    public static final boolean backLeftDriveMotorReversed = true;
+    public static final boolean backLeftDriveMotorReversed = false;
     public static final boolean backLeftTurnMotorReversed = true;
     public static final int backLeftAbsoluteEncoderPort = 16;
-    public static final double backLeftAbsoluteEncoderOffesetRad = -1.657;
+    public static final double backLeftAbsoluteEncoderOffesetRad = 0.356;
     public static final boolean backLeftAbsoluteEncoderReversed = false;
 
     public static final int backRightDriveMotor = 6;
@@ -108,6 +108,8 @@ public final class Constants {
   public static final Translation2d kRedHubCoord = new Translation2d(11.906, 4.035);
   public static final Translation2d kRedDepotTrenchCoord = new Translation2d(11.906, 7.422);
   public static final Translation2d kRedOutpostTrenchCoord = new Translation2d(11.906, 0.641);
+
+  public static final double kShooterRPSMax = 72;
 
   //IDs
   public static final int kTurretMotorID = 20;

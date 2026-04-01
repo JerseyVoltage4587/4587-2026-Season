@@ -19,8 +19,8 @@ public class Indexer extends SubsystemBase {
     private static SparkMax mainBeltMotor = new SparkMax(Constants.kMainBeltMotorID, MotorType.kBrushless);
     private static SparkMaxConfig mainBeltConfig = new SparkMaxConfig();
     
-    private static TalonFX feedMotor = new TalonFX(Constants.kFeedMotorID);
-    private static TalonFXConfiguration feedConfig = new TalonFXConfiguration();
+    // private static TalonFX feedMotor = new TalonFX(Constants.kFeedMotorID);
+    // private static TalonFXConfiguration feedConfig = new TalonFXConfiguration();
 
     public Indexer() {
                 
@@ -28,13 +28,18 @@ public class Indexer extends SubsystemBase {
         mainBeltConfig.inverted(true);
         // mainBeltConfig.smartCurrentLimit(5, 35);
         
-        feedConfig.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+        // feedConfig.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
         // feedConfig.smartCurrentLimit(5, 35);
 
         mainBeltMotor.configure(mainBeltConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        feedMotor.getConfigurator().apply(feedConfig);
+        // feedMotor.getConfigurator().apply(feedConfig);
     }
     
+    @Override
+    public void periodic()
+    {
+
+    }
     private void beltSpeed() {
         mainBeltMotor.set(0.5);
     }
@@ -43,34 +48,34 @@ public class Indexer extends SubsystemBase {
         mainBeltMotor.set(0);
     }
 
-    private void feedSpeed() {
-        feedMotor.set(0.5);
-    }
+    // private void feedSpeed() {
+    //     feedMotor.set(0.5);
+    // }
 
-    private void zeroFeedMotor() {
-        feedMotor.set(0);
-    }
+    // private void zeroFeedMotor() {
+    //     feedMotor.set(0);
+    // }
 
-    private void fullIndexer() {
-        feedMotor.set(0.5);
-        mainBeltMotor.set(0.5);
-    }
+    // private void fullIndexer() {
+    //     feedMotor.set(0.5);
+    //     mainBeltMotor.set(0.5);
+    // }
 
-    private void zeroIndexerMotors() {
-        feedMotor.set(0);
-        mainBeltMotor.set(0);
-    }
+    // private void zeroIndexerMotors() {
+    //     feedMotor.set(0);
+    //     mainBeltMotor.set(0);
+    // }
 
     public Command beltSpeedCommand() {
         return runEnd(() -> beltSpeed(), () -> zeroMainBeltMotor());
     }
 
-    public Command feedSpeedCommand() {
-        return runEnd(() -> feedSpeed(), () -> zeroFeedMotor());
-    }
+    // public Command feedSpeedCommand() {
+    //     return runEnd(() -> feedSpeed(), () -> zeroFeedMotor());
+    // }
 
-    public Command fullIndexerCommand() {
-        return runEnd(() -> fullIndexer(), () -> zeroIndexerMotors());
-    }
+    // public Command fullIndexerCommand() {
+    //     return runEnd(() -> fullIndexer(), () -> zeroIndexerMotors());
+    // }
 
 }

@@ -1,4 +1,4 @@
-// package frc.robot.subsystems;
+package frc.robot.subsystems;
 
 // import com.revrobotics.PersistMode;
 // import com.revrobotics.ResetMode;
@@ -17,5 +17,10 @@
 //     public Climber() {
 //         climberConfig.idleMode(IdleMode.kBrake);
 //         climberMotor.configure(climberConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+//     }
+
+//     @Override
+//     public void periodic() {
+
 //     }
 // }

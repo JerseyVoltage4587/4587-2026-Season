@@ -12,6 +12,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
@@ -22,11 +23,14 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.Feed;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Indexer;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Turret;
 import frc.robot.subsystems.Drivetrain.SwerveSubsystem;
+import pabeles.concurrency.IntOperatorTask.Min;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -42,6 +46,8 @@ public class RobotContainer {
   private static final Hood m_hood = new Hood();
   private static final Vision m_vision = new Vision(m_swerve::addVisionMeasurement);
   private static final Indexer m_indexer = new Indexer();
+  private static final Intake m_intake = new Intake();
+  private static final Feed m_feed = new Feed();
   private String visionTarget = null;
 
   private SendableChooser<Command> autoChooser;
@@ -62,6 +68,7 @@ public class RobotContainer {
     
     // Configure the trigger bindings
     configureBindings();
+    CameraServer.startAutomaticCapture();
     
     new Thread(() -> {
       try {
@@ -100,7 +107,7 @@ public class RobotContainer {
     jLeftBumper = new JoystickButton(j, 5); // Future Assignment: Retract Intake
     jRightBumper = new JoystickButton(j, 6); // Future Assignment: Release Intake
     jLeftTrigger = new JoystickButton(j, 7); // Future Assignment: Pass Balls to Trench Tag
-    jRightTrigger = new JoystickButton(j, 8); // Future Assignment: Auto Aim & Shoot Fuel // current assignment: run indexer
+    jRightTrigger = new JoystickButton(j, 8); // Future Assignment: Auto Aim & Shoot Fuel
     jMinusButton = new JoystickButton(j, 9);
     jPlusButton = new JoystickButton(j, 10);
     jHouseButton = new JoystickButton(j, 13);
@@ -108,15 +115,15 @@ public class RobotContainer {
 
 
     kButtonY = new JoystickButton(k, 1);
-    kButtonB = new JoystickButton(k, 2); // Current Assignment: Lower Hood
+    kButtonB = new JoystickButton(k, 2); // Commented Out Current Assignment: Lower Hood
     kButtonA = new JoystickButton(k, 3); // Current Assignment: Set Shooter Speed
-    kButtonX = new JoystickButton(k, 4); // Current Assignment: Raise Hood
+    kButtonX = new JoystickButton(k, 4); // Commented OutCurrent Assignment: Raise Hood
     kLeftBumper = new JoystickButton(k, 5); // Current Assignment: Lower Shooter Speed
     kRightBumper = new JoystickButton(k, 6); // Current Assignment: Raise Shooter Speed
-    kLeftTrigger = new JoystickButton(k, 7);
+    kLeftTrigger = new JoystickButton(k, 7); // Current Assignment: Run Intake
     kRightTrigger = new JoystickButton(k, 8); // Current Assignment: Run Indexer
-    kMinusButton = new JoystickButton(k, 9);
-    kPlusButton = new JoystickButton(k, 10);
+    kMinusButton = new JoystickButton(k, 9); // Current Assignment: Bring Release Intake In
+    kPlusButton = new JoystickButton(k, 10); // Current Assignment: Bring Release Intake Out
     kLeftStickButton = new JoystickButton(k, 11);
     kRightStickButton = new JoystickButton(k, 12);
     kHouseButton = new JoystickButton(k, 13);
@@ -129,6 +136,8 @@ public class RobotContainer {
       () -> jButtonA.getAsBoolean()
     ));
 
+
+    jButtonX.onTrue(m_swerve.ZeroGyroCommand());
     // m_turret.setDefaultCommand(m_turret.turretGoToDegrees(Math.toDegrees(turretTargetAngle())));
     // kRightTrigger.whileTrue(m_turret.turretGoToDegrees(() -> Math.toDegrees(turretTargetAngle())));
 
@@ -141,7 +150,13 @@ public class RobotContainer {
     kButtonB.whileTrue(m_hood.hoodBackwardCommand());
     kButtonX.whileTrue(m_hood.hoodForwardCommand());
 
-    kRightTrigger.whileTrue(m_indexer.fullIndexerCommand());
+    kRightTrigger.whileTrue(m_feed.feedSpeedCommand());
+    kButtonY.whileTrue(m_indexer.beltSpeedCommand());
+    kCircleButton.whileTrue(m_shooter.bangBangCommand());
+
+    kPlusButton.whileTrue(m_intake.bringReleaseIntakeOutCommand());
+    kMinusButton.whileTrue(m_intake.bringReleaseIntakeInCommand());
+    kLeftTrigger.whileTrue(m_intake.RunIntakeBallCommand());
   }
 
   

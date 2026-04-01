@@ -17,53 +17,53 @@ import frc.robot.Constants.TurretConstants;
 
 public class Turret extends SubsystemBase
 {
-    private static SparkMax turretMotor = new SparkMax(Constants.kTurretMotorID, MotorType.kBrushless);
-    private static SparkMaxConfig turretConfig = new SparkMaxConfig();
-    private static PIDController turretPIDController = new PIDController(
-        TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD
-    );
+    // private static SparkMax turretMotor = new SparkMax(Constants.kTurretMotorID, MotorType.kBrushless);
+    // private static SparkMaxConfig turretConfig = new SparkMaxConfig();
+    // private static PIDController turretPIDController = new PIDController(
+    //     TurretConstants.kTurretP, TurretConstants.kTurretI, TurretConstants.kTurretD
+    // );
     
-    public Turret() {        
-        turretConfig.idleMode(IdleMode.kBrake);
-        // turretConfig.smartCurrentLimit(10, 30); //TEST AAAAH
-        turretMotor.configure(turretConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+    // public Turret() {        
+    //     turretConfig.idleMode(IdleMode.kBrake);
+    //     // turretConfig.smartCurrentLimit(10, 30); //TEST AAAAH
+    //     turretMotor.configure(turretConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
 
-        turretMotor.getEncoder().setPosition(0);
-    }
+    //     turretMotor.getEncoder().setPosition(0);
+    // }
 
-    private void goToPosition(double pos) {
-        turretMotor.set(turretPIDController.calculate(turretMotor.getEncoder().getPosition(), pos));
-    }
+    // private void goToPosition(double pos) {
+    //     turretMotor.set(turretPIDController.calculate(turretMotor.getEncoder().getPosition(), pos));
+    // }
 
-    private void goToDegrees(double deg) {
-        goToPosition(deg * (TurretConstants.kMaxTurretEncoderValue / 360));
-    }
+    // private void goToDegrees(double deg) {
+    //     goToPosition(deg * (TurretConstants.kMaxTurretEncoderValue / 360));
+    // }
 
-    private void preventTangleAtMaxAngle() {
-        if (turretMotor.getEncoder().getPosition() > TurretConstants.kMaxTurretEncoderValue) {
-            goToPosition(0);
-        }
-    }
+    // private void preventTangleAtMaxAngle() {
+    //     if (turretMotor.getEncoder().getPosition() > TurretConstants.kMaxTurretEncoderValue) {
+    //         goToPosition(0);
+    //     }
+    // }
 
-    private void preventTangleAtMinAngle() {
-        if (turretMotor.getEncoder().getPosition() < 0) {
-            goToPosition(TurretConstants.kMaxTurretEncoderValue);
-        }
-    }
+    // private void preventTangleAtMinAngle() {
+    //     if (turretMotor.getEncoder().getPosition() < 0) {
+    //         goToPosition(TurretConstants.kMaxTurretEncoderValue);
+    //     }
+    // }
 
-    private void zeroTurret() {
-        turretMotor.set(0);
-    }
+    // private void zeroTurret() {
+    //     turretMotor.set(0);
+    // }
 
-    @Override
-    public void periodic() {
-        // This method will be called once per scheduler run
+    // @Override
+    // public void periodic() {
+    //     // This method will be called once per scheduler run
 
-        preventTangleAtMaxAngle();
-        preventTangleAtMinAngle();
-    }
+    //     preventTangleAtMaxAngle();
+    //     preventTangleAtMinAngle();
+    // }
 
-    public Command turretGoToDegrees(DoubleSupplier deg) {
-        return runEnd(() -> goToDegrees(deg.getAsDouble()), () -> zeroTurret());
-    }
+    // public Command turretGoToDegrees(DoubleSupplier deg) {
+    //     return runEnd(() -> goToDegrees(deg.getAsDouble()), () -> zeroTurret());
+    // }
 }

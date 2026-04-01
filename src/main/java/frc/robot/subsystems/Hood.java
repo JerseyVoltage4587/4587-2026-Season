@@ -10,6 +10,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -33,15 +34,19 @@ public class Hood extends SubsystemBase{
         hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Hood Encoder", hoodMotor.getEncoder().getPosition());
+    }
     // Hood methods below
 
     //Manual Hood Adjustment Functions (goes forward and backwards)
     private void hoodForward() {
-        hoodMotor.set(0.1);
+        hoodMotor.set(0.01);
     }
 
     private void hoodBackward() {
-        hoodMotor.set(-0.1);
+        hoodMotor.set(-0.01);
     }
 
     //Automatic Hood alignment based on distance
