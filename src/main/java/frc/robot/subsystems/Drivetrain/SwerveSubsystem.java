@@ -25,6 +25,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -126,6 +127,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public void InitGyro() throws InterruptedException {
     Thread.sleep(1000);
     zeroGyro();
+    reverseGyro();
     try {
     config = RobotConfig.fromGUISettings();
     } catch (Exception e) {
@@ -157,6 +159,11 @@ public class SwerveSubsystem extends SubsystemBase {
   public void zeroGyro() {
     gyro.reset();
   }
+
+  public void reverseGyro() {
+    gyro.setAngleAdjustment(180);
+  }
+
 
   public double getGyro() {
     return Math.IEEEremainder(gyro.getAngle(), 360);
@@ -199,6 +206,10 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void addVisionMeasurement(Pose2d visionPose, double visionTimestamp) {
+    if (DriverStation.getAlliance().equals(Alliance.Red)) {
+      visionPose = visionPose.rotateAround(new Translation2d(Units.inchesToMeters((444.797+205.321) / 2), Units.inchesToMeters((158.321+144.321) / 2)), new Rotation2d(180));
+    }
+    
     poseEstimator.addVisionMeasurement(visionPose, visionTimestamp);
   }
 

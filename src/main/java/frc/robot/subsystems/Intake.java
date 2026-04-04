@@ -31,6 +31,7 @@ public class Intake extends SubsystemBase {
         releaseIntakeMotor.configure(releaseIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
         
     }
+    
     @Override
     public void periodic() {
 
@@ -45,11 +46,11 @@ public class Intake extends SubsystemBase {
     }
 
     private void bringReleaseIntakeOut() {
-        releaseIntakeMotor.set(0.4);
+        releaseIntakeMotor.set(0.6);
     }
 
     private void bringReleaseIntakeIn() {
-        releaseIntakeMotor.set(-0.4);
+        releaseIntakeMotor.set(-0.6);
     }
 
     private void zeroReleaseIntake() {

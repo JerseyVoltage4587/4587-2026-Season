@@ -40,10 +40,14 @@ public class Indexer extends SubsystemBase {
     {
 
     }
+    private void beltBackwards() {
+        mainBeltMotor.set(-0.5);
+    }
+    
     private void beltSpeed() {
         mainBeltMotor.set(0.5);
     }
-
+    
     private void zeroMainBeltMotor() {
         mainBeltMotor.set(0);
     }
@@ -68,6 +72,10 @@ public class Indexer extends SubsystemBase {
 
     public Command beltSpeedCommand() {
         return runEnd(() -> beltSpeed(), () -> zeroMainBeltMotor());
+    }
+
+    public Command beltBackwardsCommand() {
+        return runEnd(() -> beltBackwards(), () -> zeroMainBeltMotor());
     }
 
     // public Command feedSpeedCommand() {

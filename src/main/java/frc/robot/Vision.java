@@ -23,17 +23,17 @@ public class Vision extends SubsystemBase {
   
   final AprilTagFieldLayout kTagLayout;
 
-  final Transform3d kRobotToRearCam;
-  final Transform3d kRobotToLeftCam;
-  final Transform3d kRobotToRightCam;
+  final Transform3d kRobotToCamOne;
+  final Transform3d kRobotToCamTwo;
+  final Transform3d kRobotToCamThree;
 
-  PhotonPoseEstimator rearPhotonEstimator;
-  PhotonPoseEstimator leftPhotonEstimator;
-  PhotonPoseEstimator rightPhotonEstimator;
+  PhotonPoseEstimator photonEstimatorOne;
+  PhotonPoseEstimator photonEstimatorTwo;
+  PhotonPoseEstimator photonEstimatorThree;
   
-  PhotonCamera rearCam;
-  PhotonCamera leftCam;
-  PhotonCamera rightCam;
+  PhotonCamera camOne;
+  PhotonCamera camTwo;
+  PhotonCamera camThree;
   
   private final EstimateConsumer estConsumer;
   
@@ -47,26 +47,26 @@ public class Vision extends SubsystemBase {
 
 
     // Creating the locations for each of the 3 cameras on the robot
-    kRobotToRearCam = new Transform3d(
-      new Translation3d(-0.178, 0, 0.14),
-      new Rotation3d(0, -Math.PI / 8, 0)
+    kRobotToCamOne = new Transform3d(
+      new Translation3d(-0.237, 0.2475, 0.467),
+      new Rotation3d(0, -Math.PI / 8, -Math.PI / 2)
     );
-    kRobotToLeftCam = new Transform3d(
-      new Translation3d(-0.232, 0.312, 0.178),
-      new Rotation3d(0, -Math.PI / 8, Math.PI / 4)
+    kRobotToCamTwo = new Transform3d(
+      new Translation3d(-0.237, -0.2475, 0.467),
+      new Rotation3d(0, -Math.PI / 8, Math.PI / 2)
     );
-    kRobotToRightCam = new Transform3d(
-      new Translation3d(-0.232, -0.312, 0.178),
-      new Rotation3d(0, -Math.PI / 8, -Math.PI / 4)
+    kRobotToCamThree = new Transform3d(
+      new Translation3d(-0.2265, -0.19, 0.4607), 
+      new Rotation3d(0, -Math.PI / 8, -Math.PI)
     );
+        
+    photonEstimatorOne = new PhotonPoseEstimator(kTagLayout, kRobotToCamOne);
+    photonEstimatorTwo = new PhotonPoseEstimator(kTagLayout, kRobotToCamTwo);
+    photonEstimatorThree = new PhotonPoseEstimator(kTagLayout, kRobotToCamThree);
 
-    rearPhotonEstimator = new PhotonPoseEstimator(kTagLayout, kRobotToRearCam);
-    leftPhotonEstimator = new PhotonPoseEstimator(kTagLayout, kRobotToLeftCam);
-    rightPhotonEstimator = new PhotonPoseEstimator(kTagLayout, kRobotToRightCam);
-
-    rearCam = new PhotonCamera("Rear Camera");
-    leftCam = new PhotonCamera("Left Camera");
-    rightCam = new PhotonCamera("Right Camera");
+    camOne = new PhotonCamera("ArduCam_1");
+    camTwo = new PhotonCamera("ArduCam_2");
+    camThree = new PhotonCamera("ArduCam3");
 
      
   }
@@ -79,10 +79,10 @@ public class Vision extends SubsystemBase {
     // lowest ambiguity as the backup pose estimator. Using Estimate Consumer to take in results after
     Optional<EstimatedRobotPose> visionEstimate = Optional.empty();
 
-    for (PhotonPipelineResult result : rearCam.getAllUnreadResults()) {
-      visionEstimate = rearPhotonEstimator.estimateCoprocMultiTagPose(result);
+    for (PhotonPipelineResult result : camThree.getAllUnreadResults()) {
+      visionEstimate = photonEstimatorThree.estimateCoprocMultiTagPose(result);
       if (visionEstimate.isEmpty()) {
-        visionEstimate = rearPhotonEstimator.estimateLowestAmbiguityPose(result);
+        visionEstimate = photonEstimatorThree.estimateLowestAmbiguityPose(result);
       }
     }
     visionEstimate.ifPresent(
@@ -91,10 +91,10 @@ public class Vision extends SubsystemBase {
       }
     );
 
-    for (PhotonPipelineResult result : leftCam.getAllUnreadResults()) {
-      visionEstimate = leftPhotonEstimator.estimateCoprocMultiTagPose(result);
+    for (PhotonPipelineResult result : camOne.getAllUnreadResults()) {
+      visionEstimate = photonEstimatorOne.estimateCoprocMultiTagPose(result);
       if (visionEstimate.isEmpty()) {
-        visionEstimate = leftPhotonEstimator.estimateLowestAmbiguityPose(result);
+        visionEstimate = photonEstimatorOne.estimateLowestAmbiguityPose(result);
       }
     }
     visionEstimate.ifPresent(
@@ -103,10 +103,10 @@ public class Vision extends SubsystemBase {
       }
     );
 
-    for (PhotonPipelineResult result : rightCam.getAllUnreadResults()) {
-      visionEstimate = rightPhotonEstimator.estimateCoprocMultiTagPose(result);
+    for (PhotonPipelineResult result : camTwo.getAllUnreadResults()) {
+      visionEstimate = photonEstimatorTwo.estimateCoprocMultiTagPose(result);
       if (visionEstimate.isEmpty()) {
-        visionEstimate = rightPhotonEstimator.estimateLowestAmbiguityPose(result);
+        visionEstimate = photonEstimatorTwo.estimateLowestAmbiguityPose(result);
       }
     }
     visionEstimate.ifPresent(
@@ -114,6 +114,8 @@ public class Vision extends SubsystemBase {
         estConsumer.accept(est.estimatedPose.toPose2d(), est.timestampSeconds);
       }
     );
+
+    
 
   }
 
@@ -123,4 +125,5 @@ public class Vision extends SubsystemBase {
   public static interface EstimateConsumer {
     public void accept(Pose2d pose, double timestamp);
   }
+
 }

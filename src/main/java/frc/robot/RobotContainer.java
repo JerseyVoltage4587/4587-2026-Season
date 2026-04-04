@@ -9,6 +9,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
 
@@ -20,6 +21,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -67,9 +74,11 @@ public class RobotContainer {
 
     
     // Configure the trigger bindings
+    NamedCommands.registerCommand("IndexingAndShooting", indexerAndShootingCommandGroup().withTimeout(20));
     configureBindings();
     CameraServer.startAutomaticCapture();
     
+
     new Thread(() -> {
       try {
         m_swerve.InitGyro();
@@ -154,12 +163,32 @@ public class RobotContainer {
     kButtonY.whileTrue(m_indexer.beltSpeedCommand());
     kCircleButton.whileTrue(m_shooter.bangBangCommand());
 
-    kPlusButton.whileTrue(m_intake.bringReleaseIntakeOutCommand());
-    kMinusButton.whileTrue(m_intake.bringReleaseIntakeInCommand());
-    kLeftTrigger.whileTrue(m_intake.RunIntakeBallCommand());
+    // kPlusButton.whileTrue(m_intake.bringReleaseIntakeOutCommand());
+    // kMinusButton.whileTrue(m_intake.bringReleaseIntakeInCommand());
+    // kLeftTrigger.whileTrue(m_intake.RunIntakeBallCommand());
+
+    jRightBumper.whileTrue(m_intake.bringReleaseIntakeOutCommand());
+    jLeftBumper.whileTrue(m_intake.bringReleaseIntakeInCommand());
+    jRightTrigger.whileTrue(m_intake.RunIntakeBallCommand());
+    jLeftTrigger.whileTrue(indexerAndShootingCommandGroup());
+    jButtonA.whileTrue(m_indexer.beltBackwardsCommand());
   }
 
-  
+  // public SequentialCommandGroup startingIntake() {
+  //   return new SequentialCommandGroup(
+  //     m_intake.bringReleaseIntakeOutCommand().withTimeout(1),
+  //     m_intake.RunIntakeBallCommand()
+  //   );
+  // }
+
+  public ParallelCommandGroup indexerAndShootingCommandGroup() {
+    return new ParallelCommandGroup(
+      m_shooter.bangBangCommand(),
+      new WaitCommand(2.5).andThen(m_feed.feedSpeedCommand()),
+      new WaitCommand(2.5).andThen(m_indexer.beltSpeedCommand())
+    );
+  }
+
   public void chooseVisionTarget(Supplier<Boolean> redAlliance) {
     // Chooses vision target based on distance from Alliance Wall (x) and distance from left field wall (y) 
     

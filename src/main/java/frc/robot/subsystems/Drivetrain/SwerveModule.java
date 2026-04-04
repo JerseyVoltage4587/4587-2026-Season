@@ -66,9 +66,11 @@ public class SwerveModule { // class swervemodule
     }
 
     driveMotorConfig.MotorOutput.withNeutralMode(NeutralModeValue.Brake);
+    driveMotorConfig.CurrentLimits.withStatorCurrentLimit(80).withStatorCurrentLimitEnable(true);
     driveMotor.getConfigurator().apply(driveMotorConfig);
     
     turnMotorConfig.idleMode(IdleMode.kBrake);
+    turnMotorConfig.smartCurrentLimit(40);
     turnMotor.configure(turnMotorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     
     turnPIDController = new PIDController(SwerveConstants.kSwerveP, SwerveConstants.kSwerveI, SwerveConstants.kSwerveD);

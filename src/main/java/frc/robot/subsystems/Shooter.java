@@ -19,7 +19,7 @@ public class Shooter extends SubsystemBase{
     private static TalonFX rightShooterMotor = new TalonFX(Constants.kRightShooterMotorID);
     private static TalonFX leftShooterMotor = new TalonFX(Constants.kLeftShooterMotorID);
     private static TalonFXConfiguration leftConfig = new TalonFXConfiguration();
-    private double shooterSpeed = 0;
+    private double shooterSpeed = 0.6;
     private static PIDController shooterPIDController = new PIDController(
         ShooterConstants.kShooterP, ShooterConstants.kShooterI, ShooterConstants.kShooterD
     );
