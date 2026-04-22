@@ -17,6 +17,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.ShooterConstants;
 import frc.robot.subsystems.Feed;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Indexer;
@@ -74,7 +76,7 @@ public class RobotContainer {
 
     
     // Configure the trigger bindings
-    NamedCommands.registerCommand("IndexingAndShooting", indexerAndShootingCommandGroup().withTimeout(20));
+    NamedCommands.registerCommand("IndexingAndShooting", indexerAndShootingCommandGroup());
     configureBindings();
     CameraServer.startAutomaticCapture();
     
@@ -126,7 +128,7 @@ public class RobotContainer {
     kButtonY = new JoystickButton(k, 1);
     kButtonB = new JoystickButton(k, 2); // Commented Out Current Assignment: Lower Hood
     kButtonA = new JoystickButton(k, 3); // Current Assignment: Set Shooter Speed
-    kButtonX = new JoystickButton(k, 4); // Commented OutCurrent Assignment: Raise Hood
+    kButtonX = new JoystickButton(k, 4); // Commented Out Current Assignment: Raise Hood
     kLeftBumper = new JoystickButton(k, 5); // Current Assignment: Lower Shooter Speed
     kRightBumper = new JoystickButton(k, 6); // Current Assignment: Raise Shooter Speed
     kLeftTrigger = new JoystickButton(k, 7); // Current Assignment: Run Intake
@@ -138,11 +140,13 @@ public class RobotContainer {
     kHouseButton = new JoystickButton(k, 13);
     kCircleButton = new JoystickButton(k, 14);
 
+    visionTarget = chooseVisionTarget(() -> DriverStation.getAlliance().equals(Alliance.Red));
+
     m_swerve.setDefaultCommand(m_swerve.DriveCommand(
       () -> j.getRawAxis(1),
       () -> j.getRawAxis(0),
       () -> j.getRawAxis(2),
-      () -> jButtonA.getAsBoolean()
+      () -> jButtonB.getAsBoolean()
     ));
 
 
@@ -153,11 +157,14 @@ public class RobotContainer {
     // m_shooter.setDefaultCommand(m_shooter.hoodGoToDegreesCommand(hoodTarget()));
     // kLeftTrigger.whileTrue(m_hood.hoodGoToDegreesCommand(() -> hoodTarget()));
 
-    kRightBumper.onTrue(m_shooter.fasterShootCommand());
-    kLeftBumper.onTrue(m_shooter.slowerShootCommand());
-    kButtonA.whileTrue(m_shooter.standardShooterSpeedCommand());
-    kButtonB.whileTrue(m_hood.hoodBackwardCommand());
-    kButtonX.whileTrue(m_hood.hoodForwardCommand());
+    // kRightBumper.onTrue(m_shooter.fasterShootCommand());
+    // kLeftBumper.onTrue(m_shooter.slowerShootCommand());
+    // kButtonA.whileTrue(m_shooter.standardShooterSpeedCommand());
+    // kButtonB.whileTrue(m_hood.hoodBackwardCommand());
+    // kButtonX.whileTrue(m_hood.hoodForwardCommand());
+
+    kRightBumper.whileTrue(m_turret.turretClockwiseCommand());
+    kLeftBumper.whileTrue(m_turret.turretCClockwiseCommand());
 
     kRightTrigger.whileTrue(m_feed.feedSpeedCommand());
     kButtonY.whileTrue(m_indexer.beltSpeedCommand());
@@ -170,59 +177,72 @@ public class RobotContainer {
     jRightBumper.whileTrue(m_intake.bringReleaseIntakeOutCommand());
     jLeftBumper.whileTrue(m_intake.bringReleaseIntakeInCommand());
     jRightTrigger.whileTrue(m_intake.RunIntakeBallCommand());
-    jLeftTrigger.whileTrue(indexerAndShootingCommandGroup());
-    jButtonA.whileTrue(m_indexer.beltBackwardsCommand());
+    jLeftTrigger.whileTrue(outtakeBallsCommandGroup());
+    // jLeftTrigger.whileTrue(indexerAndShootingCommandGroup());
+    //jButtonA.whileTrue(m_indexer.beltBackwardsCommand());
   }
-
-  // public SequentialCommandGroup startingIntake() {
-  //   return new SequentialCommandGroup(
-  //     m_intake.bringReleaseIntakeOutCommand().withTimeout(1),
-  //     m_intake.RunIntakeBallCommand()
-  //   );
-  // }
 
   public ParallelCommandGroup indexerAndShootingCommandGroup() {
     return new ParallelCommandGroup(
       m_shooter.bangBangCommand(),
-      new WaitCommand(2.5).andThen(m_feed.feedSpeedCommand()),
-      new WaitCommand(2.5).andThen(m_indexer.beltSpeedCommand())
+      new WaitCommand(1.5).andThen(m_feed.feedSpeedCommand()),
+      new WaitCommand(1.5).andThen(m_indexer.beltSpeedCommand())
     );
   }
 
-  public void chooseVisionTarget(Supplier<Boolean> redAlliance) {
+  public ParallelCommandGroup outtakeBallsCommandGroup() {
+    return new ParallelCommandGroup(
+      m_indexer.beltBackwardsCommand(),
+      m_intake.RunOuttakeBallCOmmand()
+    );
+  }
+
+  public ParallelCommandGroup autonPreloadCommandGroup() {
+    return new ParallelCommandGroup(
+      m_shooter.bangBangCommand(),
+      new WaitCommand(1.5).andThen(m_feed.feedSpeedCommand()),
+      new WaitCommand(2.5).andThen(m_indexer.beltSpeedCommand()),
+      new WaitCommand(3.5).andThen(m_intake.RunOuttakeBallCOmmand())
+    );
+  }
+
+  public String chooseVisionTarget(Supplier<Boolean> redAlliance) {
+    String vt = "";
     // Chooses vision target based on distance from Alliance Wall (x) and distance from left field wall (y) 
     
     if (redAlliance.get()) {
       if (m_swerve.getPose().getX() >= 11.57) {
-        visionTarget = "Red Hub";
+        vt = "Red Hub";
         } else if (m_swerve.getPose().getX() >= 4.03 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Red Depot Trench";
+          vt = "Red Depot Trench";
         } else if (m_swerve.getPose().getX() >= 4.03 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Red Outpost Trench";
+          vt = "Red Outpost Trench";
         } else if (m_swerve.getPose().getX() < 4.03 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Blue Outpost Trench";
+          vt = "Blue Outpost Trench";
         } else if (m_swerve.getPose().getX() < 4.03 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Blue Depot Trench";
+          vt = "Blue Depot Trench";
         } else {
-          visionTarget = null;
+          vt = null;
         }
       } else {
         if (m_swerve.getPose().getX() <= 4.03) {
-          visionTarget = "Blue Hub";
+          vt = "Blue Hub";
         } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Blue Depot Trench";
+          vt = "Blue Depot Trench";
         } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Blue Outpost Trench";
+          vt = "Blue Outpost Trench";
         } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Red Outpost Trench";
+          vt = "Red Outpost Trench";
         } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Red Depot Trench";
+          vt = "Red Depot Trench";
         } else {
-          visionTarget = null;
+          vt = null;
         }
       }
+
+      return vt;
     }
-    
+
     // Finds the angle to a Translation 2d target using the x and y coords of the robot pose
     public double translationAngleToTarget(Translation2d target) {
       double xDistanceToTarget = target.getX() - m_swerve.getPose().getX();
@@ -231,6 +251,33 @@ public class RobotContainer {
       return Math.atan2(xDistanceToTarget, yDistanceToTarget);
     }
     
+    public double turnBackToBump() {
+      double turnGyroToBump = 0.0;
+      if(visionTarget.equals("Blue Hub") || visionTarget.equals("Red Outpost Trench") || visionTarget.equals("Red Depot Trench"))
+      {
+        if(DriverStation.getAlliance().equals(DriverStation.Alliance.Red))
+        {
+          turnGyroToBump = 0;
+        }
+        else
+        {
+          turnGyroToBump = 180.0;
+        }
+      }
+      else if(visionTarget.equals("Red Hub") || visionTarget.equals("Blue Outpost Trench") || visionTarget.equals("Blue Depot Trench"))
+      {
+        if(DriverStation.getAlliance().equals(DriverStation.Alliance.Red))
+        {
+          turnGyroToBump = 180.0;
+        }
+        else
+        {
+          turnGyroToBump = 0.0;
+        }
+      }
+      return turnGyroToBump;
+    }
+
     public double turretTargetAngle() {
 
       double returnAngle;
@@ -252,7 +299,7 @@ public class RobotContainer {
     double shooterSpeedTarget;
 
     if(visionTarget.equals("Red Hub") || visionTarget.equals("Blue Hub")) {
-      shooterSpeedTarget = 0.0; //CHANGE LATER
+      shooterSpeedTarget = ShooterConstants.kMinMaxShooterSpeedDifference * ((Constants.kMaxDistanceInMeters - m_swerve.getPose().getX()) / Constants.kMaxDistanceInMeters) + ShooterConstants.kMinShooterMotorSpeed;
     } 
     else {
       shooterSpeedTarget = 0.8;
@@ -278,7 +325,6 @@ public class RobotContainer {
     return hoodAngleTarget;
   }
 
-
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
@@ -286,6 +332,8 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return autoChooser.getSelected();
+    // return autoChooser.getSelected();
+    // return autonPreloadCommandGroup().withTimeout(20);
+    return null;
   }
 }

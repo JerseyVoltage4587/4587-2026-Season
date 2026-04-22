@@ -141,7 +141,7 @@ public class SwerveModule { // class swervemodule
     }
     
     turnMotor.set(turnPIDController.calculate(getTurnPosition(), desiredState.angle.getRadians()));
-    SmartDashboard.putString("SwerveModule[" + absoluteEncoder.getDeviceID() + "] state", desiredState.toString());
+    // SmartDashboard.putString("SwerveModule[" + absoluteEncoder.getDeviceID() + "] state", desiredState.toString());
   }
     
 }

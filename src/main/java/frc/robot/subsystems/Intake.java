@@ -40,17 +40,21 @@ public class Intake extends SubsystemBase {
     private void intakeBallMotorSpeed() {
         intakeBallMotor.set(0.25);
     }
+
+    private void outtakeBallMotorSpeed() {
+        intakeBallMotor.set(-0.5);
+    }
     
     private void zeroIntakeBallMotor() {
         intakeBallMotor.set(0);
     }
 
     private void bringReleaseIntakeOut() {
-        releaseIntakeMotor.set(0.6);
+        releaseIntakeMotor.set(0.4);
     }
 
     private void bringReleaseIntakeIn() {
-        releaseIntakeMotor.set(-0.6);
+        releaseIntakeMotor.set(-0.4);
     }
 
     private void zeroReleaseIntake() {
@@ -61,6 +65,10 @@ public class Intake extends SubsystemBase {
 
     public Command RunIntakeBallCommand() {
         return runEnd(() -> intakeBallMotorSpeed(), () -> zeroIntakeBallMotor()).withName("RunIntake");
+    }
+
+    public Command RunOuttakeBallCOmmand() {
+        return runEnd(() -> outtakeBallMotorSpeed(), () -> zeroIntakeBallMotor());
     }
     
     public Command ZeroIntakeBallMotorCommand() {

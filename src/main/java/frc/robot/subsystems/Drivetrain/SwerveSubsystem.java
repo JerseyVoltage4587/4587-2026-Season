@@ -158,6 +158,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void zeroGyro() {
     gyro.reset();
+    gyro.setAngleAdjustment(0);
   }
 
   public void reverseGyro() {
@@ -241,14 +242,14 @@ public class SwerveSubsystem extends SubsystemBase {
           MathUtil.applyDeadband(xSpeedFunction.get(), RobotConstants.kDeadBand),
           MathUtil.applyDeadband(ySpeedFunction.get(), RobotConstants.kDeadBand),
           MathUtil.applyDeadband(thetaFunction.get(), RobotConstants.kDeadBand),
-          getGyroToRotation2d()
+          poseEstimator.getEstimatedPosition().getRotation()
         );
       } else {
         spds = ChassisSpeeds.fromRobotRelativeSpeeds(
           MathUtil.applyDeadband(xSpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
           MathUtil.applyDeadband(ySpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
           MathUtil.applyDeadband(thetaFunction.get() * 0.5, RobotConstants.kDeadBand), 
-          getGyroToRotation2d()
+          poseEstimator.getEstimatedPosition().getRotation()
         );
       }
       
@@ -266,20 +267,16 @@ public class SwerveSubsystem extends SubsystemBase {
     poseEstimator.update(getGyroToRotation2d(), getModulePositions);
     
     SmartDashboard.putNumber("Gyro Degrees", getGyro());
-    SmartDashboard.putNumber("Front Left Offset Rad", frontLeftModule.getAbsoluteEncoderRad());
-    SmartDashboard.putNumber("Front Right Offset Rad", frontRightModule.getAbsoluteEncoderRad());
-    SmartDashboard.putNumber("Back Left Offset Rad", backLeftModule.getAbsoluteEncoderRad());
-    SmartDashboard.putNumber("Back Right Offset Rad", backRightModule.getAbsoluteEncoderRad());
-    SmartDashboard.putNumber("Front Left Motor Rad", frontLeftModule.getTurnPosition());
-    SmartDashboard.putNumber("Front Right Motor Rad", frontRightModule.getTurnPosition());
-    SmartDashboard.putNumber("Back Left Motor Rad", backLeftModule.getTurnPosition());
-    SmartDashboard.putNumber("Back Right Motor Rad", backRightModule.getTurnPosition());
-    SmartDashboard.putNumber("Gyro", getGyro());   
+    SmartDashboard.putNumber("Estimated Pose Gyro", poseEstimator.getEstimatedPosition().getRotation().getDegrees());
 
-    // if (this.getCurrentCommand() != null)
-    //   SmartDashboard.putData("Swerve Cmd", this.getCurrentCommand());
-
-    // SmartDashboard.putString("Swerve Spds",this.getCurrentSpeeds().toString());
+    // SmartDashboard.putNumber("Front Left Offset Rad", frontLeftModule.getAbsoluteEncoderRad());
+    // SmartDashboard.putNumber("Front Right Offset Rad", frontRightModule.getAbsoluteEncoderRad());
+    // SmartDashboard.putNumber("Back Left Offset Rad", backLeftModule.getAbsoluteEncoderRad());
+    // SmartDashboard.putNumber("Back Right Offset Rad", backRightModule.getAbsoluteEncoderRad());
+    // SmartDashboard.putNumber("Front Left Motor Rad", frontLeftModule.getTurnPosition());
+    // SmartDashboard.putNumber("Front Right Motor Rad", frontRightModule.getTurnPosition());
+    // SmartDashboard.putNumber("Back Left Motor Rad", backLeftModule.getTurnPosition());
+    // SmartDashboard.putNumber("Back Right Motor Rad", backRightModule.getTurnPosition());
   }
 
   
@@ -289,6 +286,11 @@ public class SwerveSubsystem extends SubsystemBase {
     Supplier<Double> thetaFunction, Supplier<Boolean> fieldOrientedFunction)
   {
     return runEnd(() -> drive(xSpeedFunction, ySpeedFunction, thetaFunction, fieldOrientedFunction), () -> zeroModules());
+  }
+
+  public Command DriveOnBumpCommand(double angle)
+  {
+    return runEnd(() -> drive(() -> 0.0, () -> 0.0, () -> 0.5, () -> true), () -> zeroModules()).until(() -> poseEstimator.equals(angle));
   }
 
   public Command ZeroGyroCommand() {

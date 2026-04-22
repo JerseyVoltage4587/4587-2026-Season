@@ -73,20 +73,20 @@ public final class Constants {
   }
 
   public static final class ShooterConstants {
-    
-    public static final double kMaxHoodEncoderValue = 25; //NOT FINAL
+
+    public static final double kMinShooterMotorSpeed = 0.55; //NOT FINAL
+    public static final double kMaxShooterMotorSpeed = 0.85; //NOT FINAL
+    public static final double kMinMaxShooterSpeedDifference = kMaxShooterMotorSpeed - kMinShooterMotorSpeed;
 
     public static final double kShooterP = 0;
     public static final double kShooterI = 0;
     public static final double kShooterD = 0;
-
-    public static final double kHoodP = 0;
-    public static final double kHoodI = 0;
-    public static final double kHoodD = 0;
-
   }
 
   public static final class HoodConstants {
+
+    public static final double kMaxHoodEncoderValue = 25; //NOT FINAL
+    
     public static final double kHoodP = 0;
     public static final double kHoodI = 0;
     public static final double kHoodD = 0;
@@ -108,6 +108,7 @@ public final class Constants {
   public static final Translation2d kRedHubCoord = new Translation2d(11.906, 4.035);
   public static final Translation2d kRedDepotTrenchCoord = new Translation2d(11.906, 7.422);
   public static final Translation2d kRedOutpostTrenchCoord = new Translation2d(11.906, 0.641);
+  public static final double kMaxDistanceInMeters = 6.231;
 
   public static final double kShooterRPSMax = 72;
 

@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.HoodConstants;
 import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase{
@@ -19,7 +20,7 @@ public class Shooter extends SubsystemBase{
     private static TalonFX rightShooterMotor = new TalonFX(Constants.kRightShooterMotorID);
     private static TalonFX leftShooterMotor = new TalonFX(Constants.kLeftShooterMotorID);
     private static TalonFXConfiguration leftConfig = new TalonFXConfiguration();
-    private double shooterSpeed = 0.6;
+    private double shooterSpeed = 0.55;
     private static PIDController shooterPIDController = new PIDController(
         ShooterConstants.kShooterP, ShooterConstants.kShooterI, ShooterConstants.kShooterD
     );
@@ -85,6 +86,10 @@ public class Shooter extends SubsystemBase{
         leftShooterMotor.set(shooterPIDController.calculate(leftShooterMotor.get(), spd));
         rightShooterMotor.set(shooterPIDController.calculate(rightShooterMotor.get(), spd));
     }
+
+    // private void autoShooterSpeedWithPID(double currentDist) {
+    //     leftShooterMotor.set(ShooterConstants.kMinMaxShooterSpeedDifference * (currentDist / Constants.kMaxDistanceInMeters) + ShooterConstants.kMinShooterMotorSpeed);
+    // }
 
     private void zeroShooterMotors() {
         rightShooterMotor.set(0);

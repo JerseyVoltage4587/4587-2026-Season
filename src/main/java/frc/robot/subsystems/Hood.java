@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.HoodConstants;
 import frc.robot.Constants.ShooterConstants;
 
 //big class full of stuff
@@ -23,7 +24,7 @@ public class Hood extends SubsystemBase{
     private static SparkMax hoodMotor = new SparkMax(Constants.kHoodMotorID, MotorType.kBrushless);
     private static SparkMaxConfig hoodConfig = new SparkMaxConfig();
     private static PIDController hoodPIDController = new PIDController(
-        ShooterConstants.kHoodP, ShooterConstants.kHoodI, ShooterConstants.kHoodD
+        HoodConstants.kHoodP, HoodConstants.kHoodI, HoodConstants.kHoodD
     );
 
     //does stuff to the variables
@@ -58,7 +59,7 @@ public class Hood extends SubsystemBase{
 
     //so BASICALLY this thing actually does the PID: 
     private void goToDegrees(double deg) {
-        hoodAngle(deg * (ShooterConstants.kMaxHoodEncoderValue / 45));
+        hoodAngle(deg * (HoodConstants.kMaxHoodEncoderValue / 45));
 
     }
 
