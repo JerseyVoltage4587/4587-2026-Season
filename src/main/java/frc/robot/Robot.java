@@ -48,7 +48,8 @@ public class Robot extends TimedRobot {
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     SmartDashboard.putNumber("shooterTarget", m_robotContainer.shooterTarget());
-    SmartDashboard.putString("Vision Target", m_robotContainer.chooseVisionTarget(() -> false));
+    SmartDashboard.putNumber("AngleToVisionTarget", m_robotContainer.turretTargetAngle());
+    SmartDashboard.putString("VisionTarget", m_robotContainer.visionTarget);
     CommandScheduler.getInstance().run();
 
   }

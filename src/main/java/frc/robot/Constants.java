@@ -94,8 +94,9 @@ public final class Constants {
 
   public static final class TurretConstants {
     
-    public static final double kTurretToRobotFrontOffset = -90;
+    public static final double kTurretToRobotFrontOffset = 180; 
     public static final double kMaxTurretEncoderValue = 50; // NOT FINAL
+    public static final double kMinTurretEncoderValue = -kMaxTurretEncoderValue;
     
     public static final double kTurretP = 0;
     public static final double kTurretI = 0;

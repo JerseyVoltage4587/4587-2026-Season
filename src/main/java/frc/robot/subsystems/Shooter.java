@@ -81,6 +81,20 @@ public class Shooter extends SubsystemBase{
         }
     }
 
+    //Shooter Speed Method with a Bang Bang Controller to combat speed dropping
+    private void shooterSpeedWithBangBang(double baselinespd) {        
+        // rightShooterMotor.set(shooterSpeed);   
+        
+
+        if((Math.abs(leftShooterMotor.getVelocity().getValueAsDouble()) < ((Constants.kShooterRPSMax - 8.8) * shooterSpeed)))
+        {
+            // rightShooterMotor.set(shooterSpeed + 0.1);
+            leftShooterMotor.set(baselinespd);
+        } else {
+            leftShooterMotor.set(shooterSpeed);
+        }
+    }
+
     //Shooter Speed Method with a PID Controller to combat speed dropping
     private void shooterSpeedWithPID(double spd) {
         leftShooterMotor.set(shooterPIDController.calculate(leftShooterMotor.get(), spd));
@@ -100,6 +114,10 @@ public class Shooter extends SubsystemBase{
     //commands
     public Command bangBangCommand() {
         return runEnd(() -> shooterSpeedWithBangBang(), () -> zeroShooterMotors());
+    }
+
+    public Command bangBangBaselineCommand(double spd) {
+        return runEnd(() -> shooterSpeedWithBangBang(spd), () -> zeroShooterMotors());
     }
 
     public Command standardShooterSpeedCommand() {

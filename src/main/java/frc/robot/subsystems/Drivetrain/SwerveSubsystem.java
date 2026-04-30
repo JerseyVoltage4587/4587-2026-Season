@@ -6,6 +6,7 @@ package frc.robot.subsystems.Drivetrain;
 
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.swerve.jni.SwerveJNI.DriveState;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -207,8 +208,8 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void addVisionMeasurement(Pose2d visionPose, double visionTimestamp) {
-    if (DriverStation.getAlliance().equals(Alliance.Red)) {
-      visionPose = visionPose.rotateAround(new Translation2d(Units.inchesToMeters((444.797+205.321) / 2), Units.inchesToMeters((158.321+144.321) / 2)), new Rotation2d(180));
+    if (DriverStation.getAlliance().toString().contains(Alliance.Red.toString())) {
+      visionPose = visionPose.rotateAround(new Translation2d(Units.inchesToMeters(325.6), Units.inchesToMeters(158.85)), new Rotation2d(Math.PI));
     }
     
     poseEstimator.addVisionMeasurement(visionPose, visionTimestamp);
@@ -233,31 +234,39 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void drive(Supplier<Double> xSpeedFunction, Supplier<Double> ySpeedFunction,
-      Supplier<Double> thetaFunction, Supplier<Boolean> fieldOrientedFunction)
+      Supplier<Double> thetaFunction)
     {
       ChassisSpeeds spds;
 
-      if (!fieldOrientedFunction.get()) {
-        spds = ChassisSpeeds.fromFieldRelativeSpeeds(
-          MathUtil.applyDeadband(xSpeedFunction.get(), RobotConstants.kDeadBand),
-          MathUtil.applyDeadband(ySpeedFunction.get(), RobotConstants.kDeadBand),
-          MathUtil.applyDeadband(thetaFunction.get(), RobotConstants.kDeadBand),
-          poseEstimator.getEstimatedPosition().getRotation()
-        );
-      } else {
-        spds = ChassisSpeeds.fromRobotRelativeSpeeds(
+      // if (!fieldOrientedFunction.get()) {
+      //   spds = ChassisSpeeds.fromFieldRelativeSpeeds(
+      //     MathUtil.applyDeadband(xSpeedFunction.get(), RobotConstants.kDeadBand),
+      //     MathUtil.applyDeadband(ySpeedFunction.get(), RobotConstants.kDeadBand),
+      //     MathUtil.applyDeadband(thetaFunction.get(), RobotConstants.kDeadBand),
+      //     poseEstimator.getEstimatedPosition().getRotation()
+      //   );
+      // } 
+      // else {
+      //   spds = ChassisSpeeds.fromRobotRelativeSpeeds(
+      //     MathUtil.applyDeadband(xSpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
+      //     MathUtil.applyDeadband(ySpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
+      //     MathUtil.applyDeadband(thetaFunction.get() * 0.5, RobotConstants.kDeadBand), 
+      //     poseEstimator.getEstimatedPosition().getRotation()
+      //   );
+      // }
+
+      spds = ChassisSpeeds.fromRobotRelativeSpeeds(
           MathUtil.applyDeadband(xSpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
           MathUtil.applyDeadband(ySpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
           MathUtil.applyDeadband(thetaFunction.get() * 0.5, RobotConstants.kDeadBand), 
           poseEstimator.getEstimatedPosition().getRotation()
         );
-      }
       
       setModuleStates(
         kinematics.toSwerveModuleStates(spds)
       );
       SmartDashboard.putString("DriveSpds", spds.toString());
-      SmartDashboard.putBoolean("FieldOrient", !fieldOrientedFunction.get());
+      // SmartDashboard.putBoolean("FieldOrient", !fieldOrientedFunction.get());
     }
 
   @Override
@@ -269,28 +278,23 @@ public class SwerveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Gyro Degrees", getGyro());
     SmartDashboard.putNumber("Estimated Pose Gyro", poseEstimator.getEstimatedPosition().getRotation().getDegrees());
 
-    // SmartDashboard.putNumber("Front Left Offset Rad", frontLeftModule.getAbsoluteEncoderRad());
-    // SmartDashboard.putNumber("Front Right Offset Rad", frontRightModule.getAbsoluteEncoderRad());
-    // SmartDashboard.putNumber("Back Left Offset Rad", backLeftModule.getAbsoluteEncoderRad());
-    // SmartDashboard.putNumber("Back Right Offset Rad", backRightModule.getAbsoluteEncoderRad());
-    // SmartDashboard.putNumber("Front Left Motor Rad", frontLeftModule.getTurnPosition());
-    // SmartDashboard.putNumber("Front Right Motor Rad", frontRightModule.getTurnPosition());
-    // SmartDashboard.putNumber("Back Left Motor Rad", backLeftModule.getTurnPosition());
-    // SmartDashboard.putNumber("Back Right Motor Rad", backRightModule.getTurnPosition());
+    SmartDashboard.putBoolean("red team", DriverStation.getAlliance().toString().contains(Alliance.Red.toString()));
+    SmartDashboard.putNumber("RobotSwervePoseX", getPose().getX());
+    SmartDashboard.putNumber("RobotSwervePoseY", getPose().getY());
   }
 
   
 
   //Command Methods
   public Command DriveCommand(Supplier<Double> xSpeedFunction, Supplier<Double> ySpeedFunction,
-    Supplier<Double> thetaFunction, Supplier<Boolean> fieldOrientedFunction)
+    Supplier<Double> thetaFunction)
   {
-    return runEnd(() -> drive(xSpeedFunction, ySpeedFunction, thetaFunction, fieldOrientedFunction), () -> zeroModules());
+    return runEnd(() -> drive(xSpeedFunction, ySpeedFunction, thetaFunction), () -> zeroModules());
   }
 
   public Command DriveOnBumpCommand(double angle)
   {
-    return runEnd(() -> drive(() -> 0.0, () -> 0.0, () -> 0.5, () -> true), () -> zeroModules()).until(() -> poseEstimator.equals(angle));
+    return runEnd(() -> drive(() -> 0.0, () -> 0.0, () -> 0.5), () -> zeroModules()).until(() -> poseEstimator.equals(angle));
   }
 
   public Command ZeroGyroCommand() {

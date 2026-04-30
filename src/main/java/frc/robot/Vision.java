@@ -56,7 +56,7 @@ public class Vision extends SubsystemBase {
       new Rotation3d(0, -Math.PI / 8, Math.PI / 2)
     );
     kRobotToCamThree = new Transform3d(
-      new Translation3d(-0.2265, -0.19, 0.4607), 
+      new Translation3d(-0.2265, 0, 0.4607), 
       new Rotation3d(0, -Math.PI / 8, -Math.PI)
     );
         

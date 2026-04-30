@@ -55,7 +55,7 @@ public class Turret extends SubsystemBase
         turretMotor.set(0.25);
     }
 
-    private void turretCClockwise() {
+    private void turretCounterClockwise() {
         turretMotor.set(-0.25);
     }
 
@@ -71,16 +71,20 @@ public class Turret extends SubsystemBase
         // preventTangleAtMinAngle();
     }
 
-    public Command turretGoToDegrees(DoubleSupplier deg) {
+    public Command turretGoToDegreesCommand(DoubleSupplier deg) {
         return runEnd(() -> goToDegrees(deg.getAsDouble()), () -> zeroTurret());
+    }
+
+    public Command turretGoToPosCommand(DoubleSupplier pos) {
+        return runEnd(() -> goToPosition(pos.getAsDouble()), () -> zeroTurret());
     }
 
     public Command turretClockwiseCommand()  {
         return runEnd(() -> turretClockwise(), () -> zeroTurret());
     }
     
-    public Command turretCClockwiseCommand()  {
-        return runEnd(() -> turretCClockwise(), () -> zeroTurret());
+    public Command turretCounterClockwiseCommand()  {
+        return runEnd(() -> turretCounterClockwise(), () -> zeroTurret());
     }
 
     
