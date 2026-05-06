@@ -33,21 +33,37 @@ public class Hood extends SubsystemBase{
         hoodConfig.inverted(true);
         // hoodConfig.smartCurrentLimit(5, 20);
         hoodMotor.configure(hoodConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+
+        hoodMotor.getEncoder().setPosition(0);
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Hood Encoder", hoodMotor.getEncoder().getPosition());
+        SmartDashboard.putNumber("Hood Current", hoodMotor.getOutputCurrent());
+        hoodZeroCurrentBased();
     }
     // Hood methods below
 
     //Manual Hood Adjustment Functions (goes forward and backwards)
     private void hoodForward() {
-        hoodMotor.set(0.01);
+        hoodMotor.set(0.1);
     }
 
     private void hoodBackward() {
-        hoodMotor.set(-0.01);
+        hoodMotor.set(-0.1);
+    }
+
+    private void hoodZeroCurrentBased() {
+        if (hoodMotor.getEncoder().getPosition() < 2 && hoodMotor.getOutputCurrent() > 30) {
+            zeroHoodEncoder();
+        }
+    }
+  
+    private void hoodMaxCurrentBased() {
+        if (hoodMotor.getEncoder().getPosition() > 4 && hoodMotor.getOutputCurrent() > 30) {
+            hoodMotor.getEncoder().setPosition(6.35);
+        }
     }
 
     //Automatic Hood alignment based on distance
@@ -59,7 +75,7 @@ public class Hood extends SubsystemBase{
 
     //so BASICALLY this thing actually does the PID: 
     private void goToDegrees(double deg) {
-        hoodAngle(deg * (HoodConstants.kMaxHoodEncoderValue / 45));
+        hoodAngle((deg / 45) * HoodConstants.kMaxHoodEncoderValue);
 
     }
 
@@ -67,7 +83,15 @@ public class Hood extends SubsystemBase{
         hoodMotor.set(0);
     }
 
+    private void zeroHoodEncoder() {
+        hoodMotor.getEncoder().setPosition(0);
+    }
+
     // Hood commands below
+
+    public Command zeroHoodCommand() {
+        return runOnce(() -> zeroHoodEncoder());
+    }
 
     public Command hoodForwardCommand() {
         return runEnd(() -> hoodForward(), () -> zeroHoodMotor());
@@ -79,5 +103,9 @@ public class Hood extends SubsystemBase{
 
    public Command hoodGoToDegreesCommand(DoubleSupplier deg) {
         return runEnd(() -> goToDegrees(deg.getAsDouble()), () -> zeroHoodMotor());
+   }
+
+   public Command hoodGoToPosCommand(DoubleSupplier pos) {
+        return runEnd(() -> hoodAngle(pos.getAsDouble()), () -> zeroHoodMotor());
    }
 }

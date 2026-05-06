@@ -255,7 +255,7 @@ public class SwerveSubsystem extends SubsystemBase {
       //   );
       // }
 
-      spds = ChassisSpeeds.fromRobotRelativeSpeeds(
+      spds = ChassisSpeeds.fromFieldRelativeSpeeds(
           MathUtil.applyDeadband(xSpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
           MathUtil.applyDeadband(ySpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
           MathUtil.applyDeadband(thetaFunction.get() * 0.5, RobotConstants.kDeadBand), 
@@ -278,7 +278,7 @@ public class SwerveSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("Gyro Degrees", getGyro());
     SmartDashboard.putNumber("Estimated Pose Gyro", poseEstimator.getEstimatedPosition().getRotation().getDegrees());
 
-    SmartDashboard.putBoolean("red team", DriverStation.getAlliance().toString().contains(Alliance.Red.toString()));
+    SmartDashboard.putBoolean("Red Team", DriverStation.getAlliance().toString().contains(Alliance.Red.toString()));
     SmartDashboard.putNumber("RobotSwervePoseX", getPose().getX());
     SmartDashboard.putNumber("RobotSwervePoseY", getPose().getY());
   }

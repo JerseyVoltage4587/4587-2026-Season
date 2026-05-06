@@ -68,7 +68,6 @@ public class Vision extends SubsystemBase {
     camTwo = new PhotonCamera("ArduCam_2");
     camThree = new PhotonCamera("ArduCam3");
 
-     
   }
 
   @Override

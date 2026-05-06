@@ -4,10 +4,13 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.TurretConstants;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -47,9 +50,12 @@ public class Robot extends TimedRobot {
     // commands, running already-scheduled commands, removing finished or interrupted commands,
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
+    m_robotContainer.chooseVisionTarget();
     SmartDashboard.putNumber("shooterTarget", m_robotContainer.shooterTarget());
+    SmartDashboard.putNumber("Hood Target", m_robotContainer.hoodTarget());
     SmartDashboard.putNumber("AngleToVisionTarget", m_robotContainer.turretTargetAngle());
     SmartDashboard.putString("VisionTarget", m_robotContainer.visionTarget);
+    SmartDashboard.putNumber("Turret Encoder Pos in Degrees", ((m_robotContainer.turretTargetAngle() / 180) * TurretConstants.kMinTurretEncoderValue));
     CommandScheduler.getInstance().run();
 
   }

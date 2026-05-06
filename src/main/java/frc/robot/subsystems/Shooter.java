@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -116,8 +118,8 @@ public class Shooter extends SubsystemBase{
         return runEnd(() -> shooterSpeedWithBangBang(), () -> zeroShooterMotors());
     }
 
-    public Command bangBangBaselineCommand(double spd) {
-        return runEnd(() -> shooterSpeedWithBangBang(spd), () -> zeroShooterMotors());
+    public Command bangBangCommand(DoubleSupplier spd) {
+        return runEnd(() -> shooterSpeedWithBangBang(spd.getAsDouble()), () -> zeroShooterMotors());
     }
 
     public Command standardShooterSpeedCommand() {

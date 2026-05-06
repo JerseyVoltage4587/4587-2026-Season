@@ -143,7 +143,7 @@ public class RobotContainer {
     kCircleButton = new JoystickButton(k, 14);
 
     visionTarget = null;
-    chooseVisionTarget(() -> DriverStation.getAlliance().toString().contains(Alliance.Red.toString()));
+    chooseVisionTarget();
 
     m_swerve.setDefaultCommand(m_swerve.DriveCommand(
       () -> j.getRawAxis(1),
@@ -153,31 +153,15 @@ public class RobotContainer {
 
 
     jButtonX.onTrue(m_swerve.ZeroGyroCommand());
-    // m_turret.setDefaultCommand(m_turret.turretGoToDegrees(Math.toDegrees(turretTargetAngle())));
-    // kRightTrigger.whileTrue(m_turret.turretGoToDegrees(() -> Math.toDegrees(turretTargetAngle())));
-
-    // m_shooter.setDefaultCommand(m_shooter.hoodGoToDegreesCommand(hoodTarget()));
-    // kLeftTrigger.whileTrue(m_hood.hoodGoToDegreesCommand(() -> hoodTarget()));
-
-    // kRightBumper.onTrue(m_shooter.fasterShootCommand());
-    // kLeftBumper.onTrue(m_shooter.slowerShootCommand());
-    // kButtonA.whileTrue(m_shooter.standardShooterSpeedCommand());
-    // kButtonB.whileTrue(m_hood.hoodBackwardCommand());
-    // kButtonX.whileTrue(m_hood.hoodForwardCommand());
-
-    kButtonY.whileTrue(m_turret.turretGoToPosCommand(null));
+    // m_turret.setDefaultCommand(m_turret.turretGoToDegreesCommand(() -> turretTargetAngle()));
+    // m_hood.setDefaultCommand(m_hood.hoodGoToDegreesCommand(() -> hoodTarget()));
 
     kRightBumper.whileTrue(m_turret.turretClockwiseCommand());
     kLeftBumper.whileTrue(m_turret.turretCounterClockwiseCommand());
-
-    // kRightTrigger.whileTrue(m_feed.feedSpeedCommand());
-    // kButtonY.whileTrue(m_indexer.beltSpeedCommand());
-    // kCircleButton.whileTrue(m_shooter.bangBangCommand());
-    kHouseButton.whileTrue(m_shooter.bangBangBaselineCommand(shooterTarget()));
-
-    // kPlusButton.whileTrue(m_intake.bringReleaseIntakeOutCommand());
-    // kMinusButton.whileTrue(m_intake.bringReleaseIntakeInCommand());
-    // kLeftTrigger.whileTrue(m_intake.RunIntakeBallCommand());
+    kButtonY.whileTrue(m_turret.turretGoToPosCommand(() -> 10));
+    kButtonB.whileTrue(m_turret.turretGoToPosCommand(() -> 0));
+    kButtonA.whileTrue(m_turret.turretGoToPosCommand(() -> -10));
+    kMinusButton.whileTrue(m_turret.turretGoToDegreesCommand(() -> turretTargetAngle()));
 
     jRightBumper.whileTrue(m_intake.bringReleaseIntakeOutCommand());
     jLeftBumper.whileTrue(m_intake.bringReleaseIntakeInCommand());
@@ -188,9 +172,10 @@ public class RobotContainer {
 
   public ParallelCommandGroup indexerAndShootingCommandGroup() {
     return new ParallelCommandGroup(
-      m_shooter.bangBangCommand(),
-      new WaitCommand(1.5).andThen(m_feed.feedSpeedCommand()),
-      new WaitCommand(1.5).andThen(m_indexer.beltSpeedCommand())
+      m_shooter.bangBangCommand(() -> shooterTarget()),
+      new WaitCommand(1).andThen(m_feed.feedSpeedCommand()),
+      new WaitCommand(1).andThen(m_indexer.beltSpeedCommand()),
+      new WaitCommand(2.5).andThen(m_intake.bringIntakeInSlowCommand())
     );
   }
 
@@ -210,39 +195,23 @@ public class RobotContainer {
     );
   }
 
-  public void chooseVisionTarget(Supplier<Boolean> redAlliance) {
+  public void chooseVisionTarget() {
     // Chooses vision target based on distance from Alliance Wall (x) and distance from left field wall (y) 
     
-    if (redAlliance.get()) {
-      if (m_swerve.getPose().getX() >= 11.57) {
-        visionTarget = "Red Hub";
-        } else if (m_swerve.getPose().getX() >= 4.03 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Red Depot Trench";
-        } else if (m_swerve.getPose().getX() >= 4.03 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Red Outpost Trench";
-        } else if (m_swerve.getPose().getX() < 4.03 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Blue Outpost Trench";
-        } else if (m_swerve.getPose().getX() < 4.03 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Blue Depot Trench";
-        } else {
-          visionTarget = null;
-        }
+      if (m_swerve.getPose().getX() <= 4.03) {
+        visionTarget = "Hub";
+      } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() < 4.035) {
+        visionTarget = "Team Depot Trench";
+      } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() > 4.035) {
+        visionTarget = "Team Outpost Trench";
+      } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() < 4.035) {
+        visionTarget = "Opp Outpost Trench";
+      } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() > 4.035) {
+        visionTarget = "Opp Depot Trench";
       } else {
-        if (m_swerve.getPose().getX() <= 4.03) {
-          visionTarget = "Blue Hub";
-        } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Blue Depot Trench";
-        } else if (m_swerve.getPose().getX() <= 11.57 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Blue Outpost Trench";
-        } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() < 4.035) {
-          visionTarget = "Red Outpost Trench";
-        } else if (m_swerve.getPose().getX() > 11.57 && m_swerve.getPose().getY() > 4.035) {
-          visionTarget = "Red Depot Trench";
-        } else {
-          visionTarget = null;
-        }
+        visionTarget = null;
       }
-
+          
     }
 
     // Finds the angle to a Translation 2d target using the x and y coords of the robot pose
@@ -250,7 +219,7 @@ public class RobotContainer {
       double xDistanceToTarget = target.getX() - m_swerve.getPose().getX();
       double yDistanceToTarget = target.getY() - m_swerve.getPose().getY();
       
-      return Math.toDegrees(Math.atan2(xDistanceToTarget, yDistanceToTarget));
+      return Math.toDegrees(Math.atan2(yDistanceToTarget, xDistanceToTarget));
     }
     
     public double turnBackToBump() {
@@ -296,22 +265,21 @@ public class RobotContainer {
       double returnAngle;
 
       switch (visionTarget) {
-        case "Red Hub": returnAngle = translationAngleToTarget(Constants.kRedHubCoord); break;
-        case "Blue Hub": returnAngle = translationAngleToTarget(Constants.kBlueHubCoord); break;
-        case "Blue Depot Trench": returnAngle = translationAngleToTarget(Constants.kBlueDepotTrenchCoord); break;
-        case "Blue Outpost Trench": returnAngle = translationAngleToTarget(Constants.kBlueOutpostTrenchCoord); break;
-        case "Red Depot Trench": returnAngle = translationAngleToTarget(Constants.kRedDepotTrenchCoord); break;
-        case "Red Outpost Trench": returnAngle = translationAngleToTarget(Constants.kRedOutpostTrenchCoord); break;
+        case "Hub": returnAngle = translationAngleToTarget(Constants.kTeamHubCoord); break;
+        case "Team Depot Trench": returnAngle = translationAngleToTarget(Constants.kTeamDepotTrenchCoord); break;
+        case "Team Outpost Trench": returnAngle = translationAngleToTarget(Constants.kTeamOutpostTrenchCoord); break;
+        case "Opp Depot Trench": returnAngle = translationAngleToTarget(Constants.kOppDepotTrenchCoord); break;
+        case "Opp Outpost Trench": returnAngle = translationAngleToTarget(Constants.kOppOutpostTrenchCoord); break;
         default: returnAngle = 0; break;
       } 
       
-      return clipAngle(returnAngle);
+      return clipAngle(returnAngle - m_swerve.getPose().getRotation().getDegrees() + Constants.TurretConstants.kTurretToRobotFrontOffset);
   }
 
   public double shooterTarget() {
     double shooterSpeedTarget;
 
-    if(visionTarget.equals("Red Hub") || visionTarget.equals("Blue Hub")) {
+    if(visionTarget.equals("Hub")) {
       shooterSpeedTarget = ShooterConstants.kMinMaxShooterSpeedDifference * ((Constants.kMaxDistanceInMeters - m_swerve.getPose().getX()) / Constants.kMaxDistanceInMeters) + ShooterConstants.kMinShooterMotorSpeed;
     } 
     else {
@@ -321,14 +289,19 @@ public class RobotContainer {
     return shooterSpeedTarget;
   }
 
-  public double hoodTarget(Translation2d target) {
+  public double hoodTarget() {
     double hoodAngleTarget;
-    double xDistanceToTarget = target.getX() - m_swerve.getPose().getX();
-    double yDistanceToTarget = target.getY() - m_swerve.getPose().getY();
+    double xDistanceToTarget; // = target.getX() - m_swerve.getPose().getX();
+    double yDistanceToTarget; // = target.getY() - m_swerve.getPose().getY();
 
-    double diagDistanceToTarget = Math.sqrt(Math.pow(xDistanceToTarget, 2) + Math.pow(yDistanceToTarget, 2));
+    double diagDistanceToTarget; // = Math.sqrt(Math.pow(xDistanceToTarget, 2) + Math.pow(yDistanceToTarget, 2));
 
-    if(visionTarget.equals("Red Hub") || visionTarget.equals("Blue Hub")) {
+    if(visionTarget.equals("Hub")) {
+      
+      xDistanceToTarget = Constants.kTeamHubCoord.getX() - m_swerve.getPose().getX();
+      yDistanceToTarget = Constants.kTeamHubCoord.getY() - m_swerve.getPose().getY();
+      diagDistanceToTarget = Math.sqrt(Math.pow(xDistanceToTarget, 2) + Math.pow(yDistanceToTarget, 2));
+      
       hoodAngleTarget = diagDistanceToTarget * (45 / 6.231);
     } 
     else {

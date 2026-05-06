@@ -74,8 +74,8 @@ public final class Constants {
 
   public static final class ShooterConstants {
 
-    public static final double kMinShooterMotorSpeed = 0.55; //NOT FINAL
-    public static final double kMaxShooterMotorSpeed = 0.85; //NOT FINAL
+    public static final double kMinShooterMotorSpeed = 0.58;
+    public static final double kMaxShooterMotorSpeed = 0.85;
     public static final double kMinMaxShooterSpeedDifference = kMaxShooterMotorSpeed - kMinShooterMotorSpeed;
 
     public static final double kShooterP = 0;
@@ -85,9 +85,9 @@ public final class Constants {
 
   public static final class HoodConstants {
 
-    public static final double kMaxHoodEncoderValue = 25; //NOT FINAL
+    public static final double kMaxHoodEncoderValue = 6.35;
     
-    public static final double kHoodP = 0;
+    public static final double kHoodP = 0.15;
     public static final double kHoodI = 0;
     public static final double kHoodD = 0;
   }
@@ -95,20 +95,20 @@ public final class Constants {
   public static final class TurretConstants {
     
     public static final double kTurretToRobotFrontOffset = 180; 
-    public static final double kMaxTurretEncoderValue = 50; // NOT FINAL
-    public static final double kMinTurretEncoderValue = -kMaxTurretEncoderValue;
+    public static final double kMaxTurretEncoderValue = 20.761;
+    public static final double kMinTurretEncoderValue = -19.738;
     
-    public static final double kTurretP = 0;
+    public static final double kTurretP = 1000;
     public static final double kTurretI = 0;
     public static final double kTurretD = 0;
   }
 
-  public static final Translation2d kBlueHubCoord = new Translation2d(4.616, 4.035);
-  public static final Translation2d kBlueDepotTrenchCoord = new Translation2d(4.616, 0.641);
-  public static final Translation2d kBlueOutpostTrenchCoord = new Translation2d(4.616, 7.422);
-  public static final Translation2d kRedHubCoord = new Translation2d(11.906, 4.035);
-  public static final Translation2d kRedDepotTrenchCoord = new Translation2d(11.906, 7.422);
-  public static final Translation2d kRedOutpostTrenchCoord = new Translation2d(11.906, 0.641);
+  public static final Translation2d kTeamHubCoord = new Translation2d(4.616, 4.035);
+  public static final Translation2d kTeamDepotTrenchCoord = new Translation2d(4.616, 0.641);
+  public static final Translation2d kTeamOutpostTrenchCoord = new Translation2d(4.616, 7.422);
+  public static final Translation2d kOppHubCoord = new Translation2d(11.906, 4.035);
+  public static final Translation2d kOppDepotTrenchCoord = new Translation2d(11.906, 7.422);
+  public static final Translation2d kOppOutpostTrenchCoord = new Translation2d(11.906, 0.641);
   public static final double kMaxDistanceInMeters = 6.231;
 
   public static final double kShooterRPSMax = 72;

@@ -23,13 +23,12 @@ public class Intake extends SubsystemBase {
         intakeBallConfig.idleMode(IdleMode.kCoast);
         intakeBallConfig.inverted(true);
         // intakeBallConfig.smartCurrentLimit(2, 25);
-        intakeBallMotor.configure(intakeBallConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        
+        intakeBallMotor.configure(intakeBallConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);  
         releaseIntakeConfig.idleMode(IdleMode.kCoast);
         releaseIntakeConfig.inverted(true);
         // releaseIntakeConfig.smartCurrentLimit(2, 30);
         releaseIntakeMotor.configure(releaseIntakeConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-        
+
     }
     
     @Override
@@ -38,7 +37,7 @@ public class Intake extends SubsystemBase {
     }
 
     private void intakeBallMotorSpeed() {
-        intakeBallMotor.set(0.25);
+        intakeBallMotor.set(0.4);
     }
 
     private void outtakeBallMotorSpeed() {
@@ -55,6 +54,10 @@ public class Intake extends SubsystemBase {
 
     private void bringReleaseIntakeIn() {
         releaseIntakeMotor.set(-0.4);
+    }
+
+    private void bringIntakeInSlow() {
+        releaseIntakeMotor.set(-0.1);
     }
 
     private void zeroReleaseIntake() {
@@ -81,5 +84,9 @@ public class Intake extends SubsystemBase {
 
     public Command bringReleaseIntakeInCommand() {
         return runEnd(() -> bringReleaseIntakeIn(), () -> zeroReleaseIntake());
+    }
+
+    public Command bringIntakeInSlowCommand() {
+        return runEnd(() -> bringIntakeInSlow(), () -> zeroReleaseIntake());
     }
 }
