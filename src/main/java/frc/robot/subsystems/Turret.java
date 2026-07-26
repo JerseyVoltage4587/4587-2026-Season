@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
 
+import com.pathplanner.lib.config.RobotConfig;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -15,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.TurretConstants;
 
 public class Turret extends SubsystemBase
@@ -35,7 +37,12 @@ public class Turret extends SubsystemBase
     }
 
     private void goToPosition(double pos) {
-        turretMotor.set(turretPIDController.calculate(turretMotor.getEncoder().getPosition(), pos));
+        // double turretSpeed = turretPIDController.calculate(turretMotor.getEncoder().getPosition(), pos);
+        // SmartDashboard.putNumber("turretspeed", turretSpeed);
+        // if (Math.abs(turretSpeed)  < (RobotConstants.kDeadBand)) {
+        //     turretMotor.set(0);
+        // } else {
+        turretMotor.set(MathUtil.applyDeadband(turretPIDController.calculate(turretMotor.getEncoder().getPosition(), pos), RobotConstants.kDeadBand * 4));
     }
 
     private void goToDegrees(double deg) {
@@ -66,6 +73,10 @@ public class Turret extends SubsystemBase
         turretMotor.set(0);
     }
 
+    private void resetTurretGyro() {
+        turretMotor.getEncoder().setPosition(0);
+    }
+
     @Override
     public void periodic() {
         // This method will be called once per scheduler run
@@ -77,12 +88,16 @@ public class Turret extends SubsystemBase
         // preventTangleAtMinAngle();
     }
 
+    public Command turretResetGyroCommand() {
+        return runOnce(() -> resetTurretGyro());
+    }
+
     public Command turretGoToDegreesCommand(DoubleSupplier deg) {
-        return runEnd(() -> goToDegrees(deg.getAsDouble()), () -> zeroTurret()).until(() -> turretPIDController.atSetpoint());
+        return runEnd(() -> goToDegrees(deg.getAsDouble()), () -> zeroTurret());
     }
 
     public Command turretGoToPosCommand(DoubleSupplier pos) {
-        return runEnd(() -> goToPosition(pos.getAsDouble()), () -> zeroTurret()).until(() -> turretPIDController.atSetpoint());
+        return runEnd(() -> goToPosition(pos.getAsDouble()), () -> zeroTurret());
     }
 
     public Command turretClockwiseCommand()  {

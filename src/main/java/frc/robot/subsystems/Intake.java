@@ -1,5 +1,8 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -12,18 +15,19 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Intake extends SubsystemBase {
-    
-    private static SparkMax intakeBallMotor = new SparkMax(Constants.kIntakeBallMotorID, MotorType.kBrushless);
-    private static SparkMaxConfig intakeBallConfig = new SparkMaxConfig();
+
+    private static TalonFX intakeBallMotor = new TalonFX(Constants.kIntakeBallMotorID);
+    private static TalonFXConfiguration intakeBallConfig = new TalonFXConfiguration();
 
     private static SparkMax releaseIntakeMotor = new SparkMax(Constants.kReleaseIntakeMotorID, MotorType.kBrushless);
     private static SparkMaxConfig releaseIntakeConfig = new SparkMaxConfig();
     
     public Intake() {
-        intakeBallConfig.idleMode(IdleMode.kCoast);
-        intakeBallConfig.inverted(true);
-        // intakeBallConfig.smartCurrentLimit(2, 25);
-        intakeBallMotor.configure(intakeBallConfig, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);  
+
+        intakeBallConfig.MotorOutput.withInverted(InvertedValue.CounterClockwise_Positive);
+        intakeBallMotor.getConfigurator().apply(intakeBallConfig);
+
+
         releaseIntakeConfig.idleMode(IdleMode.kCoast);
         releaseIntakeConfig.inverted(true);
         // releaseIntakeConfig.smartCurrentLimit(2, 30);
@@ -37,11 +41,11 @@ public class Intake extends SubsystemBase {
     }
 
     private void intakeBallMotorSpeed() {
-        intakeBallMotor.set(0.4);
+        intakeBallMotor.set(-0.5);
     }
 
     private void outtakeBallMotorSpeed() {
-        intakeBallMotor.set(-0.5);
+        intakeBallMotor.set(0.5);
     }
     
     private void zeroIntakeBallMotor() {
@@ -57,7 +61,7 @@ public class Intake extends SubsystemBase {
     }
 
     private void bringIntakeInSlow() {
-        releaseIntakeMotor.set(-0.1);
+        releaseIntakeMotor.set(-0.2);
     }
 
     private void zeroReleaseIntake() {
@@ -70,7 +74,7 @@ public class Intake extends SubsystemBase {
         return runEnd(() -> intakeBallMotorSpeed(), () -> zeroIntakeBallMotor()).withName("RunIntake");
     }
 
-    public Command RunOuttakeBallCOmmand() {
+    public Command RunOuttakeBallCommand() {
         return runEnd(() -> outtakeBallMotorSpeed(), () -> zeroIntakeBallMotor());
     }
     

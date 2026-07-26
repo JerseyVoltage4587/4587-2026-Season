@@ -20,7 +20,7 @@ public final class Constants {
   public static class SwerveConstants {
     public static final int frontLeftDriveMotor = 2;
     public static final int frontLeftTurnMotor = 1;
-    public static final boolean frontLeftDriveMotorReversed = true;
+    public static final boolean frontLeftDriveMotorReversed = false;
     public static final boolean frontLeftTurnMotorReversed = false;
     public static final int frontLeftAbsoluteEncoderPort = 17;
     public static final double frontLeftAbsoluteEncoderOffesetRad = -6.714;
@@ -28,7 +28,7 @@ public final class Constants {
 
     public static final int frontRightDriveMotor = 4;
     public static final int frontRightTurnMotor = 3;
-    public static final boolean frontRightDriveMotorReversed = false;
+    public static final boolean frontRightDriveMotorReversed = true;
     public static final boolean frontRightTurnMotorReversed = true;
     public static final int frontRightAbsoluteEncoderPort = 18;
     public static final double frontRightAbsoluteEncoderOffesetRad = 1.140;
@@ -36,7 +36,7 @@ public final class Constants {
 
     public static final int backLeftDriveMotor = 8;
     public static final int backLeftTurnMotor = 7;
-    public static final boolean backLeftDriveMotorReversed = false;
+    public static final boolean backLeftDriveMotorReversed = true;
     public static final boolean backLeftTurnMotorReversed = true;
     public static final int backLeftAbsoluteEncoderPort = 16;
     public static final double backLeftAbsoluteEncoderOffesetRad = 0.356;
@@ -44,7 +44,7 @@ public final class Constants {
 
     public static final int backRightDriveMotor = 6;
     public static final int backRightTurnMotor = 5;
-    public static final boolean backRightDriveMotorReversed = false;
+    public static final boolean backRightDriveMotorReversed = true;
     public static final boolean backRightTurnMotorReversed = true;
     public static final int backRightAbsoluteEncoderPort = 19;
     public static final double backRightAbsoluteEncoderOffesetRad = -1.101;
@@ -74,7 +74,7 @@ public final class Constants {
 
   public static final class ShooterConstants {
 
-    public static final double kMinShooterMotorSpeed = 0.58;
+    public static final double kMinShooterMotorSpeed = 0.55;
     public static final double kMaxShooterMotorSpeed = 0.85;
     public static final double kMinMaxShooterSpeedDifference = kMaxShooterMotorSpeed - kMinShooterMotorSpeed;
 
@@ -87,7 +87,7 @@ public final class Constants {
 
     public static final double kMaxHoodEncoderValue = 6.35;
     
-    public static final double kHoodP = 0.15;
+    public static final double kHoodP = 0.18;
     public static final double kHoodI = 0;
     public static final double kHoodD = 0;
   }

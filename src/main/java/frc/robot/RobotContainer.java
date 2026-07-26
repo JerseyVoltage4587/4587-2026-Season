@@ -146,52 +146,69 @@ public class RobotContainer {
     chooseVisionTarget();
 
     m_swerve.setDefaultCommand(m_swerve.DriveCommand(
-      () -> j.getRawAxis(1),
-      () -> j.getRawAxis(0),
-      () -> j.getRawAxis(2)
+      () -> -j.getRawAxis(1),
+      () -> -j.getRawAxis(0),
+      () -> -j.getRawAxis(2)
     ));
 
+    m_turret.setDefaultCommand(m_turret.turretGoToDegreesCommand(() -> turretTargetAngle()));
+    m_hood.setDefaultCommand(m_hood.hoodGoToDegreesCommand(() -> hoodTarget()));
 
-    jButtonX.onTrue(m_swerve.ZeroGyroCommand());
-    // m_turret.setDefaultCommand(m_turret.turretGoToDegreesCommand(() -> turretTargetAngle()));
-    // m_hood.setDefaultCommand(m_hood.hoodGoToDegreesCommand(() -> hoodTarget()));
-
-    kRightBumper.whileTrue(m_turret.turretClockwiseCommand());
-    kLeftBumper.whileTrue(m_turret.turretCounterClockwiseCommand());
-    kButtonY.whileTrue(m_turret.turretGoToPosCommand(() -> 10));
-    kButtonB.whileTrue(m_turret.turretGoToPosCommand(() -> 0));
-    kButtonA.whileTrue(m_turret.turretGoToPosCommand(() -> -10));
-    kMinusButton.whileTrue(m_turret.turretGoToDegreesCommand(() -> turretTargetAngle()));
-
+    // jButtonX.onTrue(m_swerve.ZeroGyroCommand());
+    jButtonA.whileTrue(outtakeBallsCommandGroup());
+    jButtonB.onTrue(m_turret.turretResetGyroCommand());
+    jButtonX.onTrue(m_hood.zeroHoodCommand());
+    
     jRightBumper.whileTrue(m_intake.bringReleaseIntakeOutCommand());
     jLeftBumper.whileTrue(m_intake.bringReleaseIntakeInCommand());
+
     jRightTrigger.whileTrue(m_intake.RunIntakeBallCommand());
-    // jLeftTrigger.whileTrue(outtakeBallsCommandGroup());
     jLeftTrigger.whileTrue(indexerAndShootingCommandGroup());
+
+
+
+    // kRightBumper.whileTrue(m_turret.turretClockwiseCommand());
+    // kLeftBumper.whileTrue(m_turret.turretCounterClockwiseCommand());
+    // kButtonY.whileTrue(m_turret.turretGoToPosCommand(() -> 10));
+    // kButtonB.whileTrue(m_turret.turretGoToPosCommand(() -> 0));
+    // kButtonA.whileTrue(m_turret.turretGoToPosCommand(() -> -10));
+    // kMinusButton.whileTrue(m_turret.turretGoToDegreesCommand(() -> turretTargetAngle()));
+    // kRightTrigger.whileTrue(m_hood.hoodForwardCommand());
+    // kLeftTrigger.whileTrue(m_hood.hoodBackwardCommand());
+    // kPlusButton.whileTrue(m_hood.hoodGoToDegreesCommand(() -> hoodTarget()));
+
+    // kRightTrigger.whileTrue(m_turret.turretClockwiseCommand());
+    // kLeftTrigger.whileTrue(m_turret.turretCounterClockwiseCommand());
+
+    kButtonB.whileTrue(m_hood.hoodBackwardCommand());
+    // kLeftBumper.whileTrue(m_hood.hoodForwardCommand());
+
   }
 
   public ParallelCommandGroup indexerAndShootingCommandGroup() {
     return new ParallelCommandGroup(
       m_shooter.bangBangCommand(() -> shooterTarget()),
       new WaitCommand(1).andThen(m_feed.feedSpeedCommand()),
-      new WaitCommand(1).andThen(m_indexer.beltSpeedCommand()),
-      new WaitCommand(2.5).andThen(m_intake.bringIntakeInSlowCommand())
+      new WaitCommand(1).andThen(m_indexer.beltSpeedCommand())
+      // new WaitCommand(2.5).andThen(m_intake.bringIntakeInSlowCommand())
     );
   }
 
   public ParallelCommandGroup outtakeBallsCommandGroup() {
     return new ParallelCommandGroup(
       m_indexer.beltBackwardsCommand(),
-      m_intake.RunOuttakeBallCOmmand()
+      m_feed.feedSpeedBackwardsCommand()
+      // m_intake.RunOuttakeBallCommand()
     );
   }
 
   public ParallelCommandGroup autonPreloadCommandGroup() {
     return new ParallelCommandGroup(
+      m_swerve.DriveCommand(() -> -0.5, () -> 0.0, () -> 0.0).withTimeout(0.75),
       m_shooter.bangBangCommand(),
       new WaitCommand(1.5).andThen(m_feed.feedSpeedCommand()),
       new WaitCommand(2.5).andThen(m_indexer.beltSpeedCommand()),
-      new WaitCommand(3.5).andThen(m_intake.RunOuttakeBallCOmmand())
+      new WaitCommand(3.5).andThen(m_intake.RunOuttakeBallCommand())
     );
   }
 
@@ -280,7 +297,7 @@ public class RobotContainer {
     double shooterSpeedTarget;
 
     if(visionTarget.equals("Hub")) {
-      shooterSpeedTarget = ShooterConstants.kMinMaxShooterSpeedDifference * ((Constants.kMaxDistanceInMeters - m_swerve.getPose().getX()) / Constants.kMaxDistanceInMeters) + ShooterConstants.kMinShooterMotorSpeed;
+      shooterSpeedTarget = ShooterConstants.kMinMaxShooterSpeedDifference * (((Constants.kMaxDistanceInMeters * 1) - m_swerve.getPose().getX()) / Constants.kMaxDistanceInMeters) + ShooterConstants.kMinShooterMotorSpeed;
     } 
     else {
       shooterSpeedTarget = 0.8;
@@ -319,7 +336,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     // return autoChooser.getSelected();
-    // return autonPreloadCommandGroup().withTimeout(20);
-    return null;
+    return autonPreloadCommandGroup();
+    // return null;
   }
 }

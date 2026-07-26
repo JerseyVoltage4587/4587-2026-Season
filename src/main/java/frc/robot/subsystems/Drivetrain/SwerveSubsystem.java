@@ -238,27 +238,10 @@ public class SwerveSubsystem extends SubsystemBase {
     {
       ChassisSpeeds spds;
 
-      // if (!fieldOrientedFunction.get()) {
-      //   spds = ChassisSpeeds.fromFieldRelativeSpeeds(
-      //     MathUtil.applyDeadband(xSpeedFunction.get(), RobotConstants.kDeadBand),
-      //     MathUtil.applyDeadband(ySpeedFunction.get(), RobotConstants.kDeadBand),
-      //     MathUtil.applyDeadband(thetaFunction.get(), RobotConstants.kDeadBand),
-      //     poseEstimator.getEstimatedPosition().getRotation()
-      //   );
-      // } 
-      // else {
-      //   spds = ChassisSpeeds.fromRobotRelativeSpeeds(
-      //     MathUtil.applyDeadband(xSpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
-      //     MathUtil.applyDeadband(ySpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
-      //     MathUtil.applyDeadband(thetaFunction.get() * 0.5, RobotConstants.kDeadBand), 
-      //     poseEstimator.getEstimatedPosition().getRotation()
-      //   );
-      // }
-
       spds = ChassisSpeeds.fromFieldRelativeSpeeds(
-          MathUtil.applyDeadband(xSpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
-          MathUtil.applyDeadband(ySpeedFunction.get() * 0.25, RobotConstants.kDeadBand),
-          MathUtil.applyDeadband(thetaFunction.get() * 0.5, RobotConstants.kDeadBand), 
+          MathUtil.applyDeadband(xSpeedFunction.get(), RobotConstants.kDeadBand),
+          MathUtil.applyDeadband(ySpeedFunction.get(), RobotConstants.kDeadBand),
+          MathUtil.applyDeadband(thetaFunction.get(), RobotConstants.kDeadBand), 
           poseEstimator.getEstimatedPosition().getRotation()
         );
       

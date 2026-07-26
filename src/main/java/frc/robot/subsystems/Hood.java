@@ -73,6 +73,7 @@ public class Hood extends SubsystemBase{
         hoodMotor.set(hoodPIDController.calculate(hoodMotor.getEncoder().getPosition(), targetAngle));
     }
 
+
     //so BASICALLY this thing actually does the PID: 
     private void goToDegrees(double deg) {
         hoodAngle((deg / 45) * HoodConstants.kMaxHoodEncoderValue);

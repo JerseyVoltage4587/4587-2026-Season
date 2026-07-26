@@ -15,7 +15,7 @@ import frc.robot.Constants;
 public class Feed extends SubsystemBase {
   
   private static TalonFX feedMotor = new TalonFX(Constants.kFeedMotorID);
-    private static TalonFXConfiguration feedConfig = new TalonFXConfiguration();
+  private static TalonFXConfiguration feedConfig = new TalonFXConfiguration();
   
   /** Creates a new Feed. */
   public Feed() {
@@ -28,6 +28,10 @@ public class Feed extends SubsystemBase {
   private void feedSpeed() {
         feedMotor.set(0.75);
     }
+
+  private void feedSpeedBackwards() {
+        feedMotor.set(-0.75);
+  }
 
     private void zeroFeedMotor() {
         feedMotor.set(0);
@@ -50,5 +54,9 @@ public class Feed extends SubsystemBase {
 
   public Command feedSpeedCommand() {
     return runEnd(() -> feedSpeed(), () -> zeroFeedMotor());
+  }
+
+  public Command feedSpeedBackwardsCommand() {
+    return runEnd(() -> feedSpeedBackwards(), () -> zeroFeedMotor());
   }
 }
